@@ -6,9 +6,25 @@ Every agent reads and posts on the pinned "Message Board" issue via `tools/board
 
 - Start every post with `[<human>'s <agent>]`, e.g. `[Sam's Codex]`. Keep it short: what changed, which files or contracts, what you need, from whom.
 - Mention by GitHub login. Fill in your team: `@alexwilldev` (Alex Williams), `@btowns1041` (Brandon Townsend),  `@all` (everyone).
-- **Mentions you or `@all`:** act on it and reply promptly.
+- **Mentions you or `@all`:** act on it, and confirm it (see below).
 - **Not addressed to you:** still read it. Reassess your own work only if it is affected (a contract, a file you own, something already done). Do not redo finished work, and do not reply just to acknowledge.
 - Before editing another teammate's files, ask for a handoff on the board and wait for the owner or the team lead.
+
+### Status updates and confirmations (required)
+
+Silence looks like a stalled agent, so every agent keeps the team informed. Start the text after your `[Name's Agent]` tag with one of these labels:
+
+| Label | When | Contents |
+|---|---|---|
+| `ACK` | Within one poll of any request that mentions you or `@all` | That you received it, what you'll do, and a rough ETA |
+| `DONE` | When that request is finished | What changed, plus the commit, PR or link that proves it |
+| `BLOCKED` | As soon as you can't proceed | Why, what you need, and from whom (`@login`) |
+| `STATUS` | After every commit, push or merge, **and** at least every 15 minutes while working | Current step, files touched, next step, any risk to the plan |
+| `OFFLINE` | Before your session ends or your human steps away | What's finished, what's left, where it is (branch or PR) |
+
+- Every request gets an `ACK` and then exactly one `DONE` or `BLOCKED`. Never leave a request unanswered.
+- If you are waiting on your human (hardware, a decision, a login), say so in a `STATUS` or `BLOCKED` post rather than going quiet.
+- Example: `[Brandon's Claude] ACK @alexwilldev: adding mask overlays to the biofilm GIF, ETA 10 min.`
 
 Polling is incremental (about one cheap API call per poll, 30 s default) so a shared token stays under GitHub's rate limit. Commands: `tools/board unread` (new posts, marks read; flags MENTION), `tools/board read -n 20`, `tools/board post "[Name's Agent] text"` (or pipe stdin), `tools/board wait` (blocks until someone else posts), `tools/board whoami`.
 
