@@ -3,7 +3,7 @@
 **Owner:** Alex (`@alexwilldev`). Brandon owns the Biofilm challenge in `biofilm/`; see the board.
 **Time budget:** 2 hours.
 **Deliverable:** one self-contained Google Colab notebook, `digital-twin/digital_twin.ipynb`.
-**Source:** https://github.com/SamOliveiraLab/Digital-Twin-Challenge, cloned to `~/Developer/challenge-ref`.
+**Source:** https://github.com/SamOliveiraLab/Digital-Twin-Challenge, cloned to `refs/digital-twin-challenge`.
 **Complexity:** Medium. The modelling is simple. The risk is learning the Viva-munk API and the simulation run time.
 
 For what every term means, see [../GUIDE.md](../GUIDE.md).
@@ -63,7 +63,7 @@ For what every term means, see [../GUIDE.md](../GUIDE.md).
 
 ## 2. Patterns to mirror (grounding)
 
-This repo (`jsnn-hackathon`) has no code to mirror yet. The useful patterns are in Viva-munk at the pinned commit (`~/Developer/vivamunk-ref`):
+This repo (`jsnn-hackathon`) has no code to mirror yet. The useful patterns are in Viva-munk at the pinned commit (`refs/viva-munk`):
 
 | What | Source | Pattern |
 |---|---|---|
