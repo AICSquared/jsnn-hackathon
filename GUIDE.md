@@ -37,7 +37,7 @@ Blanks like **`[__]`** are filled in with our real numbers once the notebook run
 - **"What would you do with more time?"** Use the COMSOL flow field as a food map; add slowdown under crowding (Viva-munk has a pressure option); fit each cell's own growth rate rather than a shared mean.
 
 ### 1.4 Biofilm: the 30-second version
-> "From 17 microscope frames with labelled colony outlines, we tracked each colony's centre over time, measured how far it moved (net displacement and total path), and compared that with a supplied breakup score. Colony **`[__]`** moved farthest; colony **`[__]`** fragmented most. A caution: a centre can move because the colony changes shape, not just because it travels, and the breakup score is an indicator, not a count of released cells."
+> "From 17 microscope frames with labelled colony outlines, we tracked each colony's centre over time, measured how far it moved (net displacement and total path), and compared that with a supplied breakup score. Colony **33** moved farthest (37.2 px from where it started); colony **27** fragmented most (breakup score up 45 points, crossing our threshold of 40 at frame 8). Colony 33 also crossed 40 later (frame 14), colony 41 was already above 40 from the first frame, and the rest never crossed. A caution: a centre can move because the colony changes shape, not just because it travels, and the breakup score is an indicator, not a count of released cells."
 
 ---
 
