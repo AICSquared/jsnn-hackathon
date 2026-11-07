@@ -72,7 +72,7 @@ def candidate_ports():
 
 
 def connect_arm():
-    from pymycobot import MyCobot320, MyCobotSocket
+    from pymycobot import MyCobot320, MyCobot320Socket
     tries = []
     # Running ON the arm's own Raspberry Pi (myCobot 320 Pi): the motors are on /dev/ttyAMA0 at 115200 baud.
     if not ARM_PORT and not ARM_IP and os.path.exists("/dev/ttyAMA0"):
@@ -100,7 +100,7 @@ def connect_arm():
             tries.append(f"{port}: {e}")
     if ARM_IP:
         try:
-            arm = MyCobotSocket(ARM_IP, 9000)
+            arm = MyCobot320Socket(ARM_IP, 9000)
             arm.power_on()
             time.sleep(0.5)
             if arm.get_angles():
