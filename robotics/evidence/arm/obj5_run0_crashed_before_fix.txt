@@ -1,0 +1,16 @@
+EXPERIMENT = 'bioreactor_robot'  (mode auto, log empty)
+experiment: 'bioreactor_robot'   mode: auto   log: /private/tmp/evidence/reactor/od_log.csv
+polled at (UTC)            reading timestamp                         OD  source
+2026-11-07T20:53:01+00:00  2025-10-01T01:24:16.152Z              0.0050  live
+2026-11-07T20:53:06+00:00  2025-10-01T01:24:21.152Z              0.0050  live
+2026-11-07T20:53:11+00:00  2025-10-01T01:24:26.152Z              0.0050  live
+2026-11-07T20:53:22+00:00  2025-10-01T01:24:36.153Z              0.0050  live
+2026-11-07T20:53:27+00:00  2025-10-01T01:24:41.159Z              0.0050  live
+5 readings, series 'oliveirapioreactor01-2', source 'live'
+Arm: myCobot 320 Pi at 192.168.8.149
+starting pose: [89.6, 0.5, 0.4, 0.3, -0.3, -0.3]
+Traceback (most recent call last):
+  File "/tmp/robotics_live.py", line 472, in <module>
+    test_log.append(dict(step=label, target=pose, reached=[round(a, 1) for a in reached]))
+                                                                                ^^^^^^^
+TypeError: 'int' object is not iterable

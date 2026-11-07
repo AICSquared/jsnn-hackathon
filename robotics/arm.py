@@ -298,7 +298,6 @@ try:
 except KeyboardInterrupt:
     print("stopped early (Ctrl+C); everything so far is saved", flush=True)
 log = pd.DataFrame(log)
-log.to_csv(EVIDENCE / "trigger_log.csv", index=False)
 print(f"trigger log: {LOG_FILE}", flush=True)
 
 fig, ax = plt.subplots(figsize=(9, 3.2))
