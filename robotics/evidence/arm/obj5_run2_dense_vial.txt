@@ -1,0 +1,37 @@
+EXPERIMENT = 'bioreactor_robot'  (mode auto, log has data)
+experiment: 'bioreactor_robot'   mode: auto   log: /Users/alexwilliams/Developer/hackathon/jsnn-hackathon/robotics/evidence/reactor/od_log.csv
+polled at (UTC)            reading timestamp                         OD  source
+2026-11-07T21:03:52+00:00  2025-10-01T01:34:51.152Z              0.0050  live
+2026-11-07T21:03:58+00:00  2025-10-01T01:35:11.153Z              0.0050  live
+2026-11-07T21:04:03+00:00  2025-10-01T01:35:21.152Z              0.0050  live
+2026-11-07T21:04:08+00:00  2025-10-01T01:35:26.152Z              0.0050  live
+2026-11-07T21:04:14+00:00  2025-10-01T01:35:21.152Z              0.0050  live
+2026-11-07T21:04:19+00:00  2025-10-01T01:35:36.152Z              0.0050  live
+6 readings, series 'oliveirapioreactor01-2', source 'live'
+Arm: myCobot 320 Pi at 192.168.8.149
+starting pose: [89.3, 1.5, 1.0, 0.8, -0.5, -0.3]
+         step  ...                              reached
+0       start  ...    [89.2, 2.0, 1.4, 0.9, -0.6, -0.3]
+1   base left  ...   [108.9, 2.0, 1.4, 1.0, -0.8, -0.3]
+2  base right  ...    [69.8, 2.0, 1.3, 1.1, -0.8, -0.3]
+3    wrist up  ...   [88.9, 2.0, 1.4, 21.3, -0.9, -0.3]
+4  wrist down  ...  [89.0, 1.9, 1.1, -18.9, -0.1, -0.3]
+5       start  ...    [89.0, 2.0, 1.3, 0.7, -0.4, -0.3]
+
+[6 rows x 3 columns]
+/Users/alexwilliams/Developer/hackathon/jsnn-hackathon/robotics/.live_run.py:492: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.suptitle(f"Test movement ({arm.name})", fontsize=10); plt.tight_layout(); plt.show()
+self-check passed: 2 crossings in noisy data → 2 triggers (at samples [19, 100])
+live baseline: OD 0.00498 ± 0.00000 over 12 readings
+OD source: live Pioreactor OD (experiment bioreactor_robot)
+threshold 0.00518, re-arm below 0.0051
+2025-10-01T01:35:36.152Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:35:51.152Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:35:46.152Z  OD 0.00499  threshold 0.00518  armed
+2025-10-01T01:36:01.153Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:36:06.153Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:36:11.154Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:36:06.153Z  OD 0.00498  threshold 0.00518  armed
+2025-10-01T01:36:21.152Z  OD 0.30066  threshold 0.00518  → ARM RESPONDED
+2025-10-01T01:36:31.152Z  OD 0.38969  threshold 0.00518  waiting to re-arm
+2025-10-01T01:36:26.152Z  OD 0.35784  threshold 0.00518  waiting to re-arm

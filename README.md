@@ -1,13 +1,13 @@
 # JSNN Hackathon
 ## Alex Williams and Brandon Townsend
 
-Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The bonus robotics challenge uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
+Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The third challenge, Robotics that Responds, uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
 
 | Challenge | Folder | Owner | Notebook | Result |
 |---|---|---|---|---|
 | 1. Digital Twin: simulate an E. coli colony | [`digital-twin/`](digital-twin/) | Alex | [`digital_twin.ipynb`](digital-twin/digital_twin.ipynb) | Predicts cell count within **4.8%** and area within **1.1%** of the real cells · **2nd place, stage 1** |
 | 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 had the largest breakup-score increase (+45) |
-| 3+ | not announced yet | | | |
+| 3. Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | [`robotics.ipynb`](robotics/robotics.ipynb) | Objectives 1–4 done (live OD stream; arm test movement within ~1°); 5 (OD-triggered arm) awaiting the live soap test. See [`robotics/PROGRESS.md`](robotics/PROGRESS.md) |
 
 **Open in Colab:** Digital Twin [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/digital-twin/digital_twin.ipynb) · Biofilm [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/biofilm/biofilm_dispersion.ipynb)
 
@@ -47,6 +47,13 @@ jsnn-hackathon/
 │   ├── build_notebook.py                 fills the starter's TODO cells → the deliverable
 │   └── interpretation.md                 the 148-word interpretation (also inside the notebook)
 │
+├── robotics/                 ← Challenge 3: Robotics that Responds (Brandon: reactor + live OD; Alex: arm)
+│   ├── PLAN.md                 1-hour plan: objectives, API, the two-track split, risks
+│   ├── od.py                   (Track A) find the experiment, stream live OD, record/replay
+│   ├── arm.py                  (Track B) myCobot 320 control, dry-run fallback, OD threshold trigger
+│   ├── build_notebook.py       joins od.py + arm.py → robotics.ipynb
+│   └── evidence/               photos, videos, OD log: proof of each milestone
+│
 ├── tools/board               ← command-line tool for the agent message board (GitHub issue #1)
 ├── .claude/                  ← hooks that show new board posts to Claude Code agents
 ├── .github/ISSUE_TEMPLATE/   ← template for the board issue
@@ -77,6 +84,29 @@ Both notebooks already contain their saved outputs (plots, tables, video), so yo
 1. Click the Biofilm **Open in Colab** badge (or open `biofilm/biofilm_dispersion.ipynb` the same way).
 2. Click the **folder icon** on the left and upload `biofilm.zip`, `colony_masks.npz` and `breakup_scores.csv` from the organisers' zip.
 3. Choose **Runtime → Run all**.
+
+**Robotics (challenge 3):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on a laptop on the same WiFi as the myCobot, with `ARM_IP=<arm IP>`. See [`robotics/PLAN.md`](robotics/PLAN.md) and [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
+
+#### Moving the myCobot 320 by hand
+1. On the arm's Raspberry Pi (SSH in with the arm's default login from its manual), start the control server and leave it running: `python3 ~/Server_320.py`. Wait for "waiting connect". The emergency stop must be plugged in and released.
+2. On your laptop (same WiFi), open Python and send one line at a time:
+
+```python
+from pymycobot import MyCobot320Socket
+mc = MyCobot320Socket("192.168.8.149", 9000)   # the arm's IP address, port 9000
+mc.get_angles()                                # current pose: list of 6 joint angles in degrees
+
+mc.send_angles([90, 30, 15, -30, 0, -42], 30)
+#               │   │   │    │   │   │    └─ speed: 30% of max speed (1-100)
+#               │   │   │    │   │   └────── J6 end flange: rotates the tool/gripper mount   = -42°
+#               │   │   │    │   └────────── J5 wrist turn: twists the wrist side to side    =   0°
+#               │   │   │    └────────────── J4 wrist bend: tilts the wrist up/down          = -30°
+#               │   │   └─────────────────── J3 elbow: bends the forearm                     =  15°
+#               │   └─────────────────────── J2 shoulder: leans the whole arm fwd/back       =  30°
+#               └─────────────────────────── J1 base: rotates the whole arm left/right       =  90°
+```
+
+Change one joint at a time by 10–20°, keep J2 and J3 (shoulder, elbow) moves small because they swing the whole arm, and keep a hand near the emergency stop. Type `exit()` when done: the server accepts one connection at a time, so close yours before running the notebook.
 
 **To share a notebook:** choose **File → Save a copy in Drive**, then **Share → Anyone with the link → Viewer**.
 
@@ -152,7 +182,7 @@ Missing frames are NaN and never zero, and a step is never counted across a gap.
 - **One challenge each, in parallel.** Each person directs their own AI agent (Claude Code), which writes and runs the code. We make the decisions and check the results.
 - **The board** is pinned [issue #1](https://github.com/alexwilldev/jsnn-hackathon/issues/1). Agents post every commit, push and handoff there, and tag each other with `@login`. Commands: `tools/board read -n 20`, `tools/board post "[Name's Claude] …"`, `tools/board wait`. How it works: [agentwalkthrough.md](agentwalkthrough.md).
 - **Git flow:** for each task, file an issue, then work on branch `<issue#>-<slug>`, commit and push often, open a PR with `Closes #N`, and the author merges once it works. Post on the board before touching shared files (README, GUIDE, AGENTS, `shared/`).
-- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md` and `art/`; Brandon owns `biofilm/`.
+- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md`, `art/` and `robotics/arm.py`; Brandon owns `biofilm/` and `robotics/od.py`.
 
 ---
 
