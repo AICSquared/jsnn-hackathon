@@ -1,4 +1,4 @@
-# Plan: Bonus challenge, Robotics that Responds
+# Plan: Challenge 3, Robotics that Responds
 
 **Goal:** connect live Pioreactor optical density (OD) readings to a myCobot 320 arm, so the arm moves when OD crosses a threshold.
 **Where:** this repo, folder `robotics/`, next to `digital-twin/` and `biofilm/`. The same workflow applies: issue → branch → PR, and a board post on every commit.
