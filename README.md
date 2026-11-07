@@ -1,7 +1,7 @@
 # JSNN Hackathon
 ## Alex Williams and Brandon Townsend
 
-Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round**, earning the myCobot 320 robot arm for the bonus challenge. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
+Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The bonus robotics challenge uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
 
 | Challenge | Folder | Owner | Notebook | Result |
 |---|---|---|---|---|
