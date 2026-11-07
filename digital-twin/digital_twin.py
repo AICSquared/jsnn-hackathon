@@ -22,9 +22,25 @@ import importlib.util, subprocess, sys, os
 from pathlib import Path
 
 PINS = ["multi-cell @ git+https://github.com/SamOliveiraLab/Viva-munk.git@3fc41887e17f9a435080a751e106e04223446185",
-        "process-bigraph==1.1.4", "bigraph-schema==1.1.3", "pymunk==7.2.0"]
-if importlib.util.find_spec("multi_cell") is None:
+        "process-bigraph==1.1.4", "bigraph-schema==1.1.3", "pymunk==7.2.0",
+        # Colab ships plum-dispatch 2.9.0, which breaks bigraph-schema's type dispatch
+        # ("cannot reify schema Array ..."); 2.10.1 is the version we tested.
+        "plum-dispatch==2.10.1"]
+
+
+def _version(pkg):
+    from importlib.metadata import version, PackageNotFoundError
+    try:
+        return version(pkg)
+    except PackageNotFoundError:
+        return None
+
+
+if importlib.util.find_spec("multi_cell") is None or _version("plum-dispatch") != "2.10.1":
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *PINS], check=True)
+    if "plum" in sys.modules:   # an old version is already loaded: restart so the new one is used
+        print("Packages updated. The runtime restarts now: run Runtime -> Run all again.")
+        os.kill(os.getpid(), 9)
 
 # Find the challenge data: next to the notebook, in our repo's refs/, or download it.
 CANDIDATES = [Path("Digital-Twin-Challenge"), Path("../refs/digital-twin-challenge"),
