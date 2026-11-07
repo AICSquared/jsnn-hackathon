@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSNN Hackathon AI Report</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+html{color-scheme:light}body{margin:0}
+/* Layout: a single reading column (lab report) with full-width figure panels; data in mono, prose in sans. */
+:root {
+  --bg: #f6f7f7;
+  --panel: #ffffff;
+  --ink: #15191b;
+  --ink-2: #4a5458;
+  --ink-3: #6f7a7e;
+  --rule: #d9dfe0;
+  --accent: #0f6e6e;          /* bioreactor teal */
+  --accent-soft: #e2efee;
+  --alex: #2a78d6;            /* categorical slot 1 */
+  --brandon: #eb6834;         /* categorical slot 2 */
+  --good: #1d7a3a;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111516; --panel: #1a1f20; --ink: #eef1f1; --ink-2: #b9c3c5; --ink-3: #8d999c; --rule: #2c3436;
+    --accent: #5cc4c0; --accent-soft: #1c3333; --alex: #3987e5; --brandon: #d95926; --good: #5cc27a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111516; --panel: #1a1f20; --ink: #eef1f1; --ink-2: #b9c3c5; --ink-3: #8d999c; --rule: #2c3436;
+  --accent: #5cc4c0; --accent-soft: #1c3333; --alex: #3987e5; --brandon: #d95926; --good: #5cc27a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 700; letter-spacing: -0.01em; margin-top: 8px; }
+h2 { font-size: 1.65rem; font-weight: 600; margin-top: 64px; padding-top: 18px; border-top: 2px solid var(--ink); display: flex; gap: 14px; align-items: baseline; }
+h2 .sec { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); font-weight: 500; }
+h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+code { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 68ch; margin-top: 16px; }
+.byline { margin-top: 18px; font-size: 0.92rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.who { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.dot.alex { background: var(--alex); } .dot.brandon { background: var(--brandon); }
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 32px; }
+.kpi { background: var(--panel); padding: 16px 18px; min-width: 0; }
+.kpi .v { font-family: var(--mono); font-size: 1.7rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi .l { font-size: 0.82rem; color: var(--ink-2); margin-top: 2px; }
+@media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.panel { background: var(--panel); border: 1px solid var(--rule); padding: 20px; margin-top: 20px; min-width: 0; }
+.panel ul { padding-left: 18px; margin: 8px 0 0; }
+.figure .cap { font-size: 0.85rem; color: var(--ink-3); margin-top: 10px; max-width: 72ch; }
+.figtitle { font-family: var(--display); font-weight: 600; font-size: 1.02rem; }
+.figsub { font-size: 0.85rem; color: var(--ink-2); }
+.legend { display: flex; gap: 16px; font-size: 0.85rem; color: var(--ink-2); margin: 8px 0 4px; flex-wrap: wrap; }
+.scroll { overflow-x: auto; }
+.scroll .chart { min-width: 560px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.challenge { background: var(--panel); border: 1px solid var(--rule); padding: 18px 20px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.challenge h3 { margin: 0; }
+.challenge .owner { font-size: 0.82rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.challenge .result { font-family: var(--mono); font-size: 0.9rem; }
+.challenge ul { margin: 0; padding-left: 18px; font-size: 0.93rem; color: var(--ink-2); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 0.74rem; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; width: fit-content; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+
+.tablewrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--rule); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--display); font-weight: 600; font-size: 0.85rem; color: var(--ink-2); background: var(--accent-soft); white-space: nowrap; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.who-cell { white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+
+.timeline { list-style: none; margin: 20px 0 0 6px; padding: 0; border-left: 2px solid var(--rule); max-width: 76ch; }
+.timeline li { position: relative; padding: 0 0 14px 20px; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; }
+.timeline li::before { content: ""; position: absolute; left: -7px; top: 7px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+.timeline li.mile::before { background: var(--accent); }
+.timeline .t { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.timeline b { font-weight: 600; }
+
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin-top: 18px; font-size: 0.95rem; max-width: 76ch; }
+.lessons { counter-reset: l; list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; max-width: 80ch; }
+.lessons li { background: var(--panel); border: 1px solid var(--rule); padding: 14px 16px 14px 52px; position: relative; }
+.lessons li::before { counter-increment: l; content: counter(l); position: absolute; left: 18px; top: 13px; font-family: var(--mono); font-weight: 500; color: var(--accent); }
+.lessons b { display: block; font-weight: 600; margin-bottom: 2px; }
+
+svg text { fill: var(--ink-2); font-family: var(--mono); font-size: 11px; }
+svg .val { fill: var(--ink); }
+svg .lab { fill: var(--ink); font-family: var(--body); font-size: 12px; }
+svg .axis { stroke: var(--rule); }
+.chart { width: 100%; height: auto; display: block; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.4 var(--mono); padding: 6px 9px; border-radius: 4px; z-index: 20; max-width: 280px; }
+.mermaid { background: var(--panel); border: 1px solid var(--rule); padding: 16px; overflow-x: auto; margin-top: 16px; }
+footer { margin-top: 64px; font-size: 0.82rem; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 16px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">AI project report · JSNN Hackathon · November 7, 2026</div>
+  <h1>Two people, two agents, three lab challenges</h1>
+  <p class="lede">Alex Williams and Brandon Townsend each worked with a Claude Code agent (Opus 5.5). The four of them coordinated through a GitHub issue used as a message board. In about 7.5 hours they delivered a digital twin of a growing <i>E. coli</i> colony, a biofilm-tracking analysis and a bioreactor that drives a robot arm. They placed 2nd in stage 1 and advanced to the final round. This report treats the event itself as the AI project: how the work was split, what the agents did, where they went wrong and what the numbers say.</p>
+  <div class="byline">
+    <span class="who"><span class="dot alex"></span>Alex Williams + Alex's Claude</span>
+    <span class="who"><span class="dot brandon"></span>Brandon Townsend + Brandon's Claude</span>
+    <span>Repo: <a href="https://github.com/alexwilldev/jsnn-hackathon">alexwilldev/jsnn-hackathon</a></span>
+  </div>
+</header>
+
+<section class="kpis" aria-label="Headline numbers">
+  <div class="kpi"><div class="v">3 / 3</div><div class="l">challenges delivered</div></div>
+  <div class="kpi"><div class="v">852</div><div class="l">agent tool calls</div></div>
+  <div class="kpi"><div class="v">117</div><div class="l">human prompts to the agents</div></div>
+  <div class="kpi"><div class="v">115</div><div class="l">board posts between agents</div></div>
+  <div class="kpi"><div class="v">13</div><div class="l">pull requests, all merged</div></div>
+  <div class="kpi"><div class="v">55</div><div class="l">commits (Alex 45, Brandon 10)</div></div>
+  <div class="kpi"><div class="v">11.7 h</div><div class="l">combined active agent time</div></div>
+  <div class="kpi"><div class="v">586k</div><div class="l">output tokens written by the agents</div></div>
+</section>
+
+<h2><span class="sec">§1</span>What was built</h2>
+<p class="prose">Three challenges: one each at the start, and a third that both worked on. Each was delivered as a notebook that runs in Colab, with its evidence in the repo.</p>
+<div class="grid2" style="margin-top:20px">
+  <div class="challenge">
+    <span class="owner"><span class="who"><span class="dot alex"></span>Alex</span><code>digital-twin/</code></span>
+    <h3>Digital Twin of an E. coli colony</h3>
+    <span class="pill ok">✓ delivered</span>
+    <div class="result">count error 4.8% · area error 1.1%</div>
+    <ul>
+      <li>Simulates 248 real cells in a 34 × 60 µm chamber and predicts 70 hidden minutes.</li>
+      <li>Three rules, each measured from the data and added one at a time (Figure 3).</li>
+      <li>A crash that only happened in Colab was fixed by pinning one package version.</li>
+    </ul>
+  </div>
+  <div class="challenge">
+    <span class="owner"><span class="who"><span class="dot brandon"></span>Brandon</span><code>biofilm/</code></span>
+    <h3>Biofilm movement and breakup</h3>
+    <span class="pill ok">✓ delivered</span>
+    <div class="result">8 colonies × 17 frames · checked to 5×10⁻¹³ px</div>
+    <ul>
+      <li>Colony 33 moved farthest (37.18 px). Colony 27 had the largest breakup-score rise (+45), first reaching 40 at frame 8.</li>
+      <li>70 of 100 points are auto-graded to 0.05 px, so every value was recomputed a second, independent way.</li>
+      <li>Colony overlays were added to the GIF after the other agent checked the notebook against the brief.</li>
+    </ul>
+  </div>
+  <div class="challenge">
+    <span class="owner"><span class="who"><span class="dot brandon"></span>Brandon: reactor and OD</span><span class="who"><span class="dot alex"></span>Alex: arm</span><code>robotics/</code></span>
+    <h3>Robotics that Responds</h3>
+    <span class="pill ok">✓ 5 of 5 objectives</span>
+    <div class="result">2 OD crossings → exactly 2 arm responses</div>
+    <ul>
+      <li>Live optical density (OD) from a Pioreactor drives a myCobot 320 arm through a threshold with hysteresis.</li>
+      <li>The two tracks met at one function, <code>latest_od()</code>, so neither side waited for the other.</li>
+      <li>Added late: an opt-in five-level mode (wrist → base) with a table-collision limiter. It has not yet run on the real arm.</li>
+    </ul>
+  </div>
+  <div class="challenge">
+    <span class="owner"><span>both</span><code>poster/</code><code>README.md</code><code>metrics/</code></span>
+    <h3>Communication</h3>
+    <span class="pill ok">✓ delivered</span>
+    <div class="result">48 × 36 in research poster · judge guide · this report</div>
+    <ul>
+      <li>The poster is generated by a script from the real result files.</li>
+      <li>A metrics collector records counts and timestamps from the agents' logs, never message text.</li>
+    </ul>
+  </div>
+</div>
+
+<h2><span class="sec">§2</span>How the system worked</h2>
+<p class="prose">The team ran as four actors: two humans and two agents. The agents never talked directly. Every message went through one pinned GitHub issue, read and written by a small shell script, <code>tools/board</code>. Each agent kept one background process waiting on that issue, which woke the agent when the other side posted. Humans made every decision that left the laptop: splitting the work, merging, submitting and touching hardware.</p>
+
+<pre class="mermaid">
+flowchart LR
+  A["Alex"] -- "prompts, decisions" --> AC["Alex's Claude"]
+  B["Brandon"] -- "prompts, decisions" --> BC["Brandon's Claude"]
+  AC -- "ACK / DONE / STATUS" --> BOARD[("Message board<br/>GitHub issue #1")]
+  BC -- "ACK / DONE / STATUS" --> BOARD
+  BOARD -- "background wait wakes agent" --> AC
+  BOARD -- "background wait wakes agent" --> BC
+  AC -- "branch then PR" --> REPO[("Repo main<br/>13 PRs")]
+  BC -- "branch then PR" --> REPO
+  BC -- "read-only API" --> PIO["Pioreactor<br/>leader + worker"]
+  AC -- "socket port 9000" --> ARM["myCobot 320 Pi"]
+  PIO -. "latest_od()" .-> ARM
+</pre>
+
+<h3>The rules that made it work</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Rule (from AGENTS.md)</th><th>Effect during the event</th></tr></thead>
+  <tbody>
+    <tr><td>Every post starts with <code>[Name's Agent]</code></td><td>All 115 posts stayed attributable, so the metrics could count them per agent.</td></tr>
+    <tr><td>One owner per folder; a handoff on the board before touching someone else's files</td><td>No merge conflicts across 13 PRs. <code>arm.py</code> changed hands twice, each time with an explicit post.</td></tr>
+    <tr><td>A branch per issue, and a post before every push or merge</td><td>Two people and two agents pushed to one repo all day without overwriting each other.</td></tr>
+    <tr><td>ACK, then DONE or BLOCKED; STATUS on every commit and every 15 min <i>(added mid-event)</i></td><td>Added after one agent went quiet for about an hour. From then on every request got a visible answer: 18 ACK, 24 DONE, 1 BLOCKED, 46 STATUS.</td></tr>
+    <tr><td>Humans over agents; only the lead reassigns work</td><td>Agents passed proposals to their human ("I've passed it to Brandon") instead of accepting work on a person's behalf.</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§3</span>What the agents did, in numbers</h2>
+<p class="prose">These counts come from the team's own collector, <code>metrics/collect.py</code>, run over each person's Claude Code session logs. It records counts and timestamps only. Alex's figures were collected at 21:53 UTC and Brandon's at 22:32 UTC.</p>
+
+<div class="figure panel">
+  <div class="figtitle">Figure 1 · Agent workload per person</div>
+  <div class="figsub">Each panel has its own scale. Compare Alex and Brandon within a panel, not across panels.</div>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex's Claude</span><span class="who"><span class="dot brandon"></span>Brandon's Claude</span></div>
+  <div class="grid4" id="fig1"></div>
+  <div class="cap">Both agents were active for about the same time, but Brandon's received fewer prompts and made more tool calls per prompt (10.9 vs 5.8). It ran longer stretches on its own: the biofilm notebook went from "begin" to a verified, committed notebook in one turn.</div>
+</div>
+
+<div class="tablewrap"><table>
+  <thead><tr><th>Measure</th><th class="num">Alex's Claude</th><th class="num">Brandon's Claude</th><th class="num">Team</th></tr></thead>
+  <tbody id="usage"></tbody>
+</table></div>
+
+<div class="callout"><b>Almost all input was re-read context.</b> 99.5% of input tokens were cache reads: on every step the agents re-read the growing conversation. Over a full day, the length of the conversation drives the volume far more than the writing does.</div>
+
+<div class="figure panel">
+  <div class="figtitle">Figure 2 · What the agents spent their tool calls on</div>
+  <div class="figsub">Share of each agent's tool calls by tool. The shell dominates because git, the board, tests, API calls and notebook runs all go through it.</div>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex's Claude (482 calls)</span><span class="who"><span class="dot brandon"></span>Brandon's Claude (370 calls)</span></div>
+  <div class="scroll"><svg class="chart" id="fig2" role="img" aria-label="Share of tool calls by tool for each agent"></svg></div>
+</div>
+
+<h2><span class="sec">§4</span>Results by challenge</h2>
+
+<div class="figure panel">
+  <div class="figtitle">Figure 3 · Digital Twin prediction error as each rule was added</div>
+  <div class="figsub">Error against the real colony over the 65 observed minutes. Each rule was measured from the data, not tuned to the target.</div>
+  <div class="legend"><span class="who"><span class="dot" style="background:var(--accent)"></span>Cell count error</span><span class="who"><span class="dot" style="background:var(--ink-3)"></span>Total area error</span></div>
+  <div class="scroll"><svg class="chart" id="fig3" role="img" aria-label="Digital Twin error by rule set: grow 14.25% and 1.28%; grow and divide 4.79% and 1.13%; plus position 4.75% and 1.12%"></svg></div>
+  <div class="cap">Adding cell division cut count error from 14.25% to 4.79%. Adding position barely changed it (4.75%), and the team reported that as is instead of tuning the number down.</div>
+</div>
+
+<h3>Robotics: the five objectives</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th class="num">#</th><th>Objective</th><th>Owner</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td>Assemble and set up the Pioreactor</td><td class="who-cell"><span class="who"><span class="dot brandon"></span><span class="dot alex"></span>both</span></td><td><span class="pill ok">✓</span> Worker and leader units online; photos and screenshots committed.</td></tr>
+    <tr><td class="num">2</td><td>Connect to the API and find the experiment</td><td class="who-cell"><span class="who"><span class="dot brandon"></span>Brandon</span></td><td><span class="pill ok">✓</span> Experiment <code>bioreactor_robot</code>, vessel <code>oliveirapioreactor01-2</code>.</td></tr>
+    <tr><td class="num">3</td><td>Show live, timestamped OD</td><td class="who-cell"><span class="who"><span class="dot brandon"></span>Brandon</span></td><td><span class="pill ok">✓</span> A new reading every 5 s; handles the reactor's wrong clock.</td></tr>
+    <tr><td class="num">4</td><td>Connect to and control the arm</td><td class="who-cell"><span class="who"><span class="dot alex"></span>Alex</span></td><td><span class="pill ok">✓</span> Every test pose reached within about 1°.</td></tr>
+    <tr><td class="num">5</td><td>Arm responds to an OD threshold</td><td class="who-cell"><span class="who"><span class="dot alex"></span>Alex</span></td><td><span class="pill ok">✓</span> 2 crossings gave 2 responses, and a dense vial gave exactly 1. The judges' demo missed once (§6) and was fixed.</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§5</span>Timeline</h2>
+<p class="prose">All times UTC on November 7, 2026. Filled markers are milestones.</p>
+<ul class="timeline">
+  <li><span class="t">14:21</span><span>First commit: the team template with the board script and agent rules.</span></li>
+  <li><span class="t">14:53</span><span>First board post. Both agents come online.</span></li>
+  <li class="mile"><span class="t">15:55</span><span><b>Work split posted:</b> Digital Twin to Alex, Biofilm to Brandon, two hours.</span></li>
+  <li class="mile"><span class="t">16:12</span><span><b>Biofilm notebook merged</b> (PR #4), 8.6 minutes from issue to merge.</span></li>
+  <li class="mile"><span class="t">16:46</span><span><b>Digital Twin merged</b> (PR #5).</span></li>
+  <li><span class="t">17:11</span><span>Colab crash fixed by pinning a package version; README rewritten with a learning path.</span></li>
+  <li><span class="t">17:33</span><span>Robotics challenge announced. Plan written, tracks split, interface (<code>latest_od</code>) agreed.</span></li>
+  <li><span class="t">17:40</span><span><code>od.py</code> pushed with record and replay, because the reactor API was offline.</span></li>
+  <li><span class="t">18:32</span><span>A check against the brief finds the biofilm GIF missing colony overlays. Fixed and merged in about 6 minutes.</span></li>
+  <li><span class="t">18:37</span><span>ACK / DONE / BLOCKED / STATUS rules added to AGENTS.md after an hour of silence from one agent.</span></li>
+  <li class="mile"><span class="t">19:09</span><span><b>2nd place in stage 1.</b> The team gets the myCobot arm for the robotics round.</span></li>
+  <li><span class="t">19:43</span><span>The reactor turns out to be a cluster worker. The leader unit is switched on and the API comes up.</span></li>
+  <li class="mile"><span class="t">19:56</span><span><b>Live OD stream working</b> (objective 3) and <b>real arm test movement passes</b> (objective 4).</span></li>
+  <li class="mile"><span class="t">21:01</span><span><b>Objective 5 on real hardware:</b> a vial of cell medium raises OD from 0.005 to 0.031 and the arm responds; a second vial gives a second response.</span></li>
+  <li><span class="t">21:09</span><span>Robotics PR merged: 3,891 lines, 3.6 hours from issue to merge.</span></li>
+  <li><span class="t">21:32</span><span>The judges' live demo does not fire (§6). A fix is committed within 3 minutes.</span></li>
+  <li><span class="t">22:29</span><span>Five-level arm mode with the table limiter merged (PR #22).</span></li>
+</ul>
+
+<div class="figure panel">
+  <div class="figtitle">Figure 4 · Time from issue opened to PR merged</div>
+  <div class="figsub">Minutes for each of the 13 merged PRs, colored by author. Most were small and merged within minutes. The robotics PR stayed open while the hardware came together.</div>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex</span><span class="who"><span class="dot brandon"></span>Brandon</span></div>
+  <div class="scroll"><svg class="chart" id="fig4" role="img" aria-label="Minutes from issue opened to merge for each pull request"></svg></div>
+  <div class="cap">PR #12's 149 minutes is counted from its parent issue (#3), opened hours earlier. The fix itself took about 6 minutes after the request.</div>
+</div>
+
+<h2><span class="sec">§6</span>Problems solved, and how they were found</h2>
+<p class="prose">From both agents' problem-solving logs. The common pattern: the agent read the source code or the raw data before changing anything, then stated the cause plainly.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th class="num">Time</th><th>Problem</th><th>How it was found</th><th>Fix</th><th>Who</th></tr></thead>
+  <tbody>
+    <tr><td class="num">15:58</td><td>The simulator library measures a rod's length without its rounded tips</td><td>Read the library source before coding</td><td>Converted lengths; starting area matched (569.0 vs 570 µm²)</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td class="num">16:05</td><td>The chamber is open on one side, but the simulator only has closed boxes</td><td>Read the physics source</td><td>Wider box plus a step that removes cells past the opening</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td class="num">16:05</td><td>The biofilm data had no gaps, so the graded missing-data rules would never run</td><td>Checked every colony in every frame before coding</td><td>Implemented and tested the rules on made-up tracks anyway</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+    <tr><td class="num">16:40</td><td>The notebook crashed only in Colab</td><td>Asked the human to paste Colab's error and package list</td><td>Reproduced Colab locally; pinned <code>plum-dispatch</code> 2.10.1</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td class="num">17:37</td><td>"Latest OD" jumped between vessels, which would trigger the arm on noise</td><td>Tests against a fake API</td><td>Follow one vessel per run</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+    <tr><td class="num">19:43</td><td>The reactor said "this unit isn't the leader"</td><td>Read-only requests from the only laptop on the reactor's Wi-Fi</td><td>Switched on the leader unit</td><td class="who-cell"><span class="dot brandon"></span> <span class="dot alex"></span></td></tr>
+    <tr><td class="num">19:46</td><td>The API was up but the newest reading never changed</td><td>Streamed for 60 s, then checked three more times</td><td>Posted BLOCKED: OD reading wasn't running; Alex started it</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+    <tr><td class="num">19:53</td><td>The reactor's clock said 2025-10-01, so new readings sorted before old ones</td><td>Spotted in the raw readings</td><td>Take the newest reading at or before the reactor's own clock</td><td class="who-cell"><span class="dot alex"></span> <span class="dot brandon"></span></td></tr>
+    <tr><td class="num">20:55</td><td>Over Wi-Fi the arm sometimes answers <code>-1</code> instead of its angles</td><td>The first live run crashed</td><td>Retry the reads</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td class="num">21:32</td><td>The judges' demo didn't fire. The starting OD still held the previous vial's readings, so the threshold landed at 0.0946 and the new vial peaked at 0.0903</td><td>Read the saved run log</td><td>Starting level from the median, ignoring outliers; threshold capped 0.005 above it</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td class="num">22:00</td><td>The table limiter's "lift, don't lower" rule compared a joint that never moves, so every option tied</td><td>Printed the predicted heights for each level</td><td>Compare the tool tip's height; added a self-check</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+  </tbody>
+</table></div>
+
+<h3>Agent mistakes</h3>
+<p class="prose">Both agents logged their own errors. None reached a submission. Each was caught by a check or by the other side of the board.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Mistake</th><th>How it was caught</th><th>Who</th></tr></thead>
+  <tbody>
+    <tr><td>Posted on the board before the file it described was saved</td><td>A hook blocked the write; the agent posted a correction</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td>Edited on the wrong branch, then announced a change that hadn't landed</td><td>Checked the commit's file list, re-applied the change and posted a correction</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td>Reported "a reading every 5 s" from the spacing of old points, not from new arrivals</td><td>The other agent's live stream showed no new readings</td><td class="who-cell"><span class="dot alex"></span></td></tr>
+    <tr><td>Started a board watcher with its output thrown away (three times), and once ran two at once</td><td>Noticed it, stopped it, re-checked for missed posts and restarted a proper one</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+    <tr><td>Added up three overlapping session logs, counting the same work two or three times</td><td>Measured more than 99% overlap and re-ran on one log</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+    <tr><td>Went quiet for about an hour while the teammate waited</td><td>The human lead, which led to the ACK and STATUS rule</td><td class="who-cell"><span class="dot brandon"></span></td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§7</span>How humans and agents divided the work</h2>
+<div class="grid2" style="margin-top:16px">
+  <div class="panel" style="margin-top:0">
+    <div class="figtitle">Humans did</div>
+    <ul>
+      <li>Split the work and approved every merge, push and outward post.</li>
+      <li>Everything physical: assembling the reactor, powering the arm, the emergency stop, swapping vials.</li>
+      <li>Logins and sends: downloading the challenge file from Slack, Colab uploads, the submission email.</li>
+      <li>Corrections that became standing rules, such as "commit frequently" and "post on the board every time".</li>
+      <li>Design calls, such as "lowest OD level at the wrist, highest at the base", "keep it at 15°" and "don't hit the table".</li>
+    </ul>
+  </div>
+  <div class="panel" style="margin-top:0">
+    <div class="figtitle">Agents did</div>
+    <ul>
+      <li>Read library source, a 517-page arm manual and raw API data to find exact facts.</li>
+      <li>Wrote, ran and independently checked the analysis code.</li>
+      <li>Kept the board going: 115 posts, with every request acknowledged and closed.</li>
+      <li>Checked each other's work: README and poster corrections, the GIF requirement, the stale-reading diagnosis.</li>
+      <li>Asked before anything irreversible, and planned first when asked to.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="figure panel">
+  <div class="figtitle">Figure 5 · Board posts by type</div>
+  <div class="figsub">Posts carrying each label; a post can carry more than one. Total 115: Alex's Claude 72, Brandon's Claude 43.</div>
+  <div class="scroll"><svg class="chart" id="fig5" role="img" aria-label="Board posts by label: STATUS 46, DONE 24, ACK 18, BLOCKED 1, OFFLINE 1"></svg></div>
+</div>
+
+<h2><span class="sec">§8</span>Lessons for the next AI-assisted build</h2>
+<ol class="lessons">
+  <li><b>Agree on the interface, not the implementation.</b> The robotics tracks met at one function. Both sides built against stand-ins (a recorded log, a simulated arm) and swapped in the real thing at the end.</li>
+  <li><b>Make silence easy to spot.</b> The biggest coordination loss was an agent that went quiet. A cheap rule, ACK every request and post STATUS every 15 minutes, fixed it within minutes.</li>
+  <li><b>Check a graded number a second way.</b> The biofilm values were recomputed independently and matched to 10⁻¹² px before submission.</li>
+  <li><b>Read the source when the docs are down.</b> The API routes, the arm's server and the arm's geometry all came from source code or the manual, not from guessing.</li>
+  <li><b>Don't trust device clocks or "latest".</b> A reactor booted without internet thought it was 2025. "Newest" had to mean newest by the device's own clock.</li>
+  <li><b>Set thresholds from statistics that ignore outliers.</b> The demo that missed used an average skewed by leftover readings. A median-based starting level would have fired.</li>
+  <li><b>Keep a person in the loop where it counts.</b> Agents planned, built and tested. People approved merges, handled hardware and sent submissions. Nothing irreversible happened without a person saying yes.</li>
+</ol>
+
+<h2><span class="sec">§9</span>Method and caveats</h2>
+<ul class="prose">
+  <li><b>Source:</b> <code>metrics/collect.py</code>, the team's collector. It reads Claude Code session logs (counts and timestamps only), git history, the board issue, and GitHub issues and PRs.</li>
+  <li><b>Active time</b> adds up the gaps between logged events, counting at most 10 minutes per gap, so long idle stretches don't count.</li>
+  <li><b>Brandon's session restarted twice.</b> Each restart copied the earlier conversation into a new log file, with more than 99% overlap. Only the newest log and one helper-agent log were counted; adding all three would have roughly doubled his numbers.</li>
+  <li><b>Snapshot times differ:</b> Alex's chat figures are from 21:53 UTC; Brandon's chat, git, board and PR figures are from 22:32 UTC.</li>
+  <li><b>Estimates left out:</b> the problem-solving logs include the agents' own "time saved" estimates. They aren't measurements, so this report doesn't use them.</li>
+  <li><b>Line counts</b> include generated notebook files with embedded images, so they overstate hand-written code. Code and docs alone: Alex 4,070 lines, Brandon 1,361.</li>
+  <li><b>Open item:</b> the five-level arm mode passed its self-checks and dry runs against live OD, but hasn't yet moved the real arm.</li>
+</ul>
+
+<footer>
+  Data: <code>metrics/data/alex.json</code>, <code>metrics/data/brandon.json</code>, <code>poster/assets/*.json</code>, <code>metrics/problem-solving-*.md</code> and <code>robotics/PROGRESS.md</code> in <a href="https://github.com/alexwilldev/jsnn-hackathon">alexwilldev/jsnn-hackathon</a>. Compiled by Brandon's Claude for Brandon Townsend.
+</footer>
+</div>
+
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const tip = document.getElementById("tip");
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function hover(node, text) {
+  node.style.cursor = "default";
+  node.addEventListener("pointermove", ev => { tip.textContent = text; tip.hidden = false; tip.style.left = Math.min(ev.clientX + 12, innerWidth - 290) + "px"; tip.style.top = (ev.clientY + 14) + "px"; });
+  node.addEventListener("pointerleave", () => { tip.hidden = true; });
+}
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1000) + "k" : n.toLocaleString("en-US");
+function hbar(svg, x, y, w, h, fill) {  // horizontal bar, rounded data end, square at the baseline
+  const r = Math.min(3, w / 2), ww = Math.max(w - r, 0);
+  return el("path", { d: `M${x},${y} h${ww} q${r},0 ${r},${r} v${h - 2 * r} q0,${r} ${-r},${r} h${-ww} Z`, fill }, svg);
+}
+function vbar(svg, x, base, w, h, fill) {  // vertical bar, rounded top
+  const r = Math.min(4, h / 2), y = base - h;
+  return el("path", { d: `M${x},${base} V${y + r} q0,${-r} ${r},${-r} h${w - 2 * r} q${r},0 ${r},${r} V${base} Z`, fill }, svg);
+}
+
+// Data from metrics/collect.py (Alex at 21:53 UTC, Brandon at 22:32 UTC)
+const A = { prompts: 83, responses: 499, tools: 482, out: 406980, think: 90947, cache: 218225125, active: 351.6 };
+const B = { prompts: 34, responses: 392, tools: 370, out: 178873, think: 29063, cache: 95616003, active: 351.1 };
+
+// Usage table
+const rows = [
+  ["Human prompts", A.prompts, B.prompts], ["Model responses", A.responses, B.responses], ["Tool calls", A.tools, B.tools],
+  ["Tool calls per prompt", (A.tools / A.prompts).toFixed(1), (B.tools / B.prompts).toFixed(1), "—"],
+  ["Output tokens", A.out, B.out], ["… of which thinking", A.think, B.think], ["Cache-read input tokens", A.cache, B.cache],
+  ["Active minutes", A.active, B.active], ["Model", "Opus 5.5", "Opus 5.5", "—"],
+];
+const tb = document.getElementById("usage");
+for (const r of rows) {
+  const tr = document.createElement("tr");
+  const team = r[3] ?? (typeof r[1] === "number" ? Math.round((r[1] + r[2]) * 10) / 10 : "");
+  [r[0], r[1], r[2], team].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = typeof v === "number" ? v.toLocaleString("en-US") : v; tr.appendChild(td); });
+  tb.appendChild(tr);
+}
+
+// Figure 1: small multiples, one measure per panel
+const f1 = document.getElementById("fig1");
+[["Human prompts", A.prompts, B.prompts], ["Model responses", A.responses, B.responses], ["Tool calls", A.tools, B.tools], ["Active minutes", A.active, B.active]].forEach(([label, a, b]) => {
+  const box = document.createElement("div");
+  const W = 170, base = 150, max = Math.max(a, b) * 1.2;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${base + 40}`, class: "chart", role: "img", "aria-label": `${label}: Alex ${a}, Brandon ${b}` }, box);
+  el("line", { x1: 12, x2: W - 12, y1: base, y2: base, class: "axis" }, svg);
+  [[a, "var(--alex)", "Alex", 36], [b, "var(--brandon)", "Brandon", 98]].forEach(([v, c, who, x]) => {
+    const h = (v / max) * (base - 14);
+    hover(vbar(svg, x, base, 36, h, c), `${who}'s Claude: ${v.toLocaleString("en-US")} ${label.toLowerCase()}`);
+    el("text", { x: x + 18, y: base - h - 6, "text-anchor": "middle", class: "val" }, svg).textContent = fmt(v);
+    el("text", { x: x + 18, y: base + 15, "text-anchor": "middle" }, svg).textContent = who;
+  });
+  el("text", { x: W / 2, y: base + 34, "text-anchor": "middle", class: "lab", style: "font-weight:600" }, svg).textContent = label;
+  f1.appendChild(box);
+});
+
+// Figure 2: tool share by category, two bars per row
+(function () {
+  const svg = document.getElementById("fig2");
+  const cats = [["Shell (Bash)", 323, 302], ["Edit / Write files", 55, 40], ["Read files", 30, 8], ["Turn wrap-up and plans", 52, 0], ["Other tools", 22, 20]];
+  const W = 900, rowH = 46, left = 180, right = 60, H = cats.length * rowH + 24;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sx = v => left + (v / 70) * (W - left - right);
+  [0, 20, 40, 60].forEach(t => { el("line", { x1: sx(t), x2: sx(t), y1: 0, y2: H - 22, class: "axis" }, svg); el("text", { x: sx(t), y: H - 6, "text-anchor": "middle" }, svg).textContent = t + "%"; });
+  cats.forEach(([c, na, nb], i) => {
+    const y = i * rowH + 6;
+    el("text", { x: left - 12, y: y + 19, "text-anchor": "end", class: "lab" }, svg).textContent = c;
+    [[na, 482, "var(--alex)", "Alex", 0], [nb, 370, "var(--brandon)", "Brandon", 17]].forEach(([n, tot, col, who, dy]) => {
+      const p = n / tot * 100, w = Math.max(sx(p) - left, 1.5);
+      hover(hbar(svg, left, y + dy, w, 14, col), `${who}'s Claude: ${n} of ${tot} calls (${p.toFixed(1)}%) · ${c}`);
+      el("text", { x: left + w + 6, y: y + dy + 11 }, svg).textContent = p.toFixed(0) + "%";
+    });
+  });
+})();
+
+// Figure 3: Digital Twin error by rule set
+(function () {
+  const svg = document.getElementById("fig3");
+  const data = [["1 · grow", 14.25, 1.28], ["1 + 2 · grow, divide", 4.79, 1.13], ["1 + 2 + 3 · add position", 4.75, 1.12]];
+  const W = 900, H = 270, top = 16, bottom = 44, left = 50, max = 16;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sy = v => H - bottom - (v / max) * (H - bottom - top);
+  [0, 4, 8, 12, 16].forEach(t => { el("line", { x1: left, x2: W - 10, y1: sy(t), y2: sy(t), class: "axis" }, svg); el("text", { x: left - 8, y: sy(t) + 4, "text-anchor": "end" }, svg).textContent = t + "%"; });
+  const gw = (W - left - 20) / 3;
+  data.forEach(([lab, c, a], i) => {
+    const gx = left + i * gw + gw / 2;
+    [[c, "var(--accent)", "cell count error", -46], [a, "var(--ink-3)", "area error", 6]].forEach(([v, col, name, dx]) => {
+      const h = sy(0) - sy(v);
+      hover(vbar(svg, gx + dx, sy(0), 40, h, col), `Rules ${lab}: ${name} ${v}%`);
+      el("text", { x: gx + dx + 20, y: sy(v) - 6, "text-anchor": "middle", class: "val" }, svg).textContent = v + "%";
+    });
+    el("text", { x: gx, y: H - 18, "text-anchor": "middle", class: "lab" }, svg).textContent = "Rules " + lab;
+  });
+})();
+
+// Figure 4: PR minutes from issue to merge
+(function () {
+  const svg = document.getElementById("fig4");
+  const prs = [[4, "Biofilm notebook", "b", 8.6], [5, "Digital Twin notebook", "a", 44.1], [7, "Colab fix + README", "a", 7.0], [9, "README fixes", "a", 4.0],
+    [12, "Biofilm GIF overlays", "b", 149.4], [13, "AGENTS.md status rules", "a", 1.5], [14, "README placement", "a", 0.4], [17, "README arm wording", "a", 1.7],
+    [18, "Robotics challenge", "a", 216.9], [19, "Robotics video", "a", 1.8], [20, "Poster + video", "a", 8.8], [22, "5-level arm + limiter", "b", 42.0], [23, "Final README + poster", "a", 0.9]];
+  const W = 900, rowH = 26, left = 220, right = 80, H = prs.length * rowH + 28;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sx = v => left + (v / 225) * (W - left - right);
+  [0, 60, 120, 180].forEach(t => { el("line", { x1: sx(t), x2: sx(t), y1: 0, y2: H - 24, class: "axis" }, svg); el("text", { x: sx(t), y: H - 8, "text-anchor": "middle" }, svg).textContent = t + " min"; });
+  prs.forEach(([n, t, who, m], i) => {
+    const y = i * rowH + 4, w = Math.max(sx(m) - left, 2);
+    el("text", { x: left - 12, y: y + 13, "text-anchor": "end", class: "lab" }, svg).textContent = `#${n} ${t}`;
+    hover(hbar(svg, left, y + 2, w, 14, who === "a" ? "var(--alex)" : "var(--brandon)"), `PR #${n} ${t}: ${m} min (${who === "a" ? "Alex" : "Brandon"})`);
+    el("text", { x: left + w + 6, y: y + 13 }, svg).textContent = m + " min";
+  });
+})();
+
+// Figure 5: board posts by label
+(function () {
+  const svg = document.getElementById("fig5");
+  const d = [["STATUS", 46], ["DONE", 24], ["ACK", 18], ["BLOCKED", 1], ["OFFLINE", 1]];
+  const W = 900, rowH = 30, left = 100, right = 50, H = d.length * rowH + 26;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sx = v => left + (v / 50) * (W - left - right);
+  [0, 10, 20, 30, 40, 50].forEach(t => { el("line", { x1: sx(t), x2: sx(t), y1: 0, y2: H - 22, class: "axis" }, svg); el("text", { x: sx(t), y: H - 6, "text-anchor": "middle" }, svg).textContent = t; });
+  d.forEach(([lab, v], i) => {
+    const y = i * rowH + 4, w = Math.max(sx(v) - left, 2);
+    el("text", { x: left - 12, y: y + 15, "text-anchor": "end", class: "val" }, svg).textContent = lab;
+    hover(hbar(svg, left, y + 3, w, 16, "var(--accent)"), `${lab}: ${v} posts`);
+    el("text", { x: left + w + 6, y: y + 16 }, svg).textContent = v;
+  });
+})();
+</script>
+
+</body>
+</html>
