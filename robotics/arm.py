@@ -275,8 +275,8 @@ for ts, od in readings():
     pose = respond(arm) if fired else None
     log.append(dict(time=ts, od=od, threshold=THRESHOLD, event="ARM MOVED" if fired else "",
                     pose=[round(a, 1) for a in pose] if pose else ""))
-    if fired:
-        print(f"{ts}  OD {od:.4f} > {THRESHOLD}  →  arm responded")
+    if live or fired:   # live runs print every reading so you can watch; simulated runs print only triggers
+        print(f"{ts}  OD {od:.5f}  threshold {THRESHOLD}  {'→ ARM RESPONDED' if fired else ('armed' if trigger.armed else 'waiting to re-arm')}", flush=True)
 log = pd.DataFrame(log)
 log.to_csv(EVIDENCE / "trigger_log.csv", index=False)
 
