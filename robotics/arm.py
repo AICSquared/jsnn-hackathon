@@ -242,13 +242,22 @@ def respond(arm):
 
 
 # %% [markdown]
-# ### Optional: different OD levels → different joints (opt-in with `OD_LEVELS`)
+# ### Optional: higher OD → a joint further down the arm (opt-in with `OD_LEVELS`)
 #
-# By default the arm makes one "nod" at a single threshold (above). Setting `OD_LEVELS` instead gives each OD
-# level its own move, so a denser culture produces a different, recognisable response:
+# By default the arm makes one "nod" at a single threshold (above). Setting `OD_LEVELS=preset` instead gives
+# five OD levels, each moving **one joint by 15°** and back. The lowest level moves the wrist, and each higher
+# level moves a joint closer to the base, so a denser culture moves more of the arm:
 #
-# `OD_LEVELS="0.01:J4:20,0.05:J1:25,0.2:J6:30"` means *above OD 0.01 turn joint 4 by 20°, above 0.05 turn the
-# base (J1) by 25°, above 0.2 turn the flange (J6) by 30°*. Each response goes out and back to the start pose.
+# | Level | OD above | Joint |
+# |---|---|---|
+# | 1 | 0.006 | J5 wrist turn |
+# | 2 | 0.015 | J4 wrist bend |
+# | 3 | 0.04 | J3 elbow |
+# | 4 | 0.10 | J2 shoulder |
+# | 5 | 0.25 | J1 base |
+#
+# (J6, the end flange, only spins in place, so it is not used.) Custom levels use the same format,
+# e.g. `OD_LEVELS="0.01:J4:15,0.05:J1:15"`.
 #
 # - Levels are **absolute OD values** (not relative to the baseline), so the same vial gives the same move every run.
 # - Each level fires **once per upward crossing**, with its own hysteresis: it re-arms only after OD falls below
@@ -256,14 +265,18 @@ def respond(arm):
 # - The first reading only sets the starting state: a level the OD is already above does not fire at start-up.
 # - If OD jumps past several levels in one reading, only the **highest** level's move runs, and the lower levels
 #   are marked as fired, so they don't fire later while OD is still above them.
-# - Safety: joints J1–J6 only, at most 30° per move, relative to the start pose, at `SPEED`.
+# - Safety: joints J1–J6 only, at most 30° per move, relative to the start pose, at `SPEED`, and every move must
+#   pass the **table limiter** below before it is sent.
 
 # %%
 MAX_LEVEL_DEG = 30
+PRESET_LEVELS = "0.006:J5:15,0.015:J4:15,0.04:J3:15,0.1:J2:15,0.25:J1:15"
 
 
 def parse_levels(spec):
-    """'0.01:J4:20,0.05:J1:25' -> [(0.01, 3, 20.0), (0.05, 0, 25.0)], sorted by OD. Empty or None -> []."""
+    """'0.01:J4:20,0.05:J1:25' -> [(0.01, 3, 20.0), (0.05, 0, 25.0)], sorted by OD. 'preset' -> PRESET_LEVELS."""
+    if (spec or "").strip().lower() == "preset":
+        spec = PRESET_LEVELS
     levels = []
     for part in (spec or "").replace(" ", "").split(","):
         if not part:
@@ -311,27 +324,135 @@ class LevelTrigger:
         return max(fired) if fired else None
 
 
-def respond_level(arm, level):
+# %% [markdown]
+# ### Table limiter
+#
+# Before any level move is sent, we **calculate where every part of the arm will be** from the joint angles,
+# using the myCobot 320's link geometry (DH parameters, manual p. 138). Height 0 is the surface the arm stands on.
+# A move is sent only if all of these hold, otherwise it is skipped and logged as `BLOCKED`:
+#
+# 1. Every joint, the flange and the tool tip (`TOOL_MM` beyond the flange, default 100 mm for the gripper) stay at
+#    least `TABLE_CLEARANCE_MM` (default 50 mm) above the table, at the target **and** at 10 points along the way.
+# 2. For the bending joints (J2 shoulder, J3 elbow, J4 wrist) the 15° goes whichever way keeps the arm **higher**.
+# 3. Every joint stays 10° inside its limit (±165°, J6 ±175°).
+# 4. On the real arm, the calculated flange position must match the position the arm reports (`get_coords`) within
+#    20 mm at start-up. If it doesn't, or the arm can't report it, level mode refuses to move the real arm.
+#
+# It only knows about the table. Keep other objects (the reactor, cables) out of the arm's reach.
+
+# %%
+DH = [  # (alpha_{i-1}, a_{i-1} mm, d_i mm, theta offset) for J1..J6, modified DH, myCobot 320 manual p. 138
+    (0.0, 0.0, 173.9, 0.0), (math.pi / 2, 0.0, 0.0, -math.pi / 2), (0.0, -135.0, 0.0, 0.0),
+    (0.0, -120.0, 95.0, -math.pi / 2), (math.pi / 2, 0.0, 87.78, 0.0), (-math.pi / 2, 0.0, 65.5, 0.0)]
+TOOL_MM = float(os.environ.get("TOOL_MM", 100))
+TABLE_CLEARANCE_MM = float(os.environ.get("TABLE_CLEARANCE_MM", 50))
+JOINT_LIMITS = [165, 165, 165, 165, 165, 175]
+LIMIT_MARGIN = 10
+
+
+def arm_points(angles):
+    """3D points (mm) of each joint, the flange and the tool tip for the given joint angles (degrees)."""
+    T, pts = np.eye(4), []
+    for (alpha, a, d, off), q in zip(DH, angles):
+        th = math.radians(q) + off
+        ca, sa, ct, st = math.cos(alpha), math.sin(alpha), math.cos(th), math.sin(th)
+        T = T @ np.array([[ct, -st, 0, a], [st * ca, ct * ca, -sa, -sa * d], [st * sa, ct * sa, ca, ca * d], [0, 0, 0, 1]])
+        pts.append(T[:3, 3].copy())
+    pts.append((T @ np.array([0, 0, TOOL_MM, 1]))[:3])
+    return pts
+
+
+def lowest_point(angles):
+    return min(p[2] for p in arm_points(angles))
+
+
+def pose_problem(start, target):
+    """None if moving from start to target is safe, else the reason it is not."""
+    for j, (q, lim) in enumerate(zip(target, JOINT_LIMITS)):
+        if abs(q) > lim - LIMIT_MARGIN:
+            return f"J{j + 1} at {q:.0f}° is within {LIMIT_MARGIN}° of its ±{lim}° limit"
+    for t in np.linspace(0, 1, 11):            # target and 10 points along the joint-space path
+        pose = [s + t * (g - s) for s, g in zip(start, target)]
+        z = lowest_point(pose)
+        if z < TABLE_CLEARANCE_MM:
+            return f"part of the arm would come within {z:.0f} mm of the table (minimum {TABLE_CLEARANCE_MM:.0f} mm)"
+    return None
+
+
+def level_target(level):
+    """(target pose, signed degrees used, problem or None). Bending joints go whichever way keeps the arm higher."""
     _, joint, deg = level
-    move(arm, nudge(joint, deg))
+    options = [deg, -deg] if joint in (1, 2, 3) else [deg]
+    # Rank by the lowest point, then by tool-tip height: the shoulder joint never moves, so the lowest point is
+    # often a tie, and the tip height is what tells "lifts the arm" from "lowers it toward the table".
+    options.sort(key=lambda d: (round(lowest_point(nudge(joint, d)), 1), arm_points(nudge(joint, d))[-1][2]), reverse=True)
+    for d in options:
+        target = nudge(joint, d)
+        problem = pose_problem(HOME, target)
+        if problem is None:
+            return target, d, None
+    return nudge(joint, options[0]), options[0], problem
+
+
+def limiter_trusted(arm):
+    """On the real arm, the calculated flange position must match the arm's own reading within 20 mm."""
+    if isinstance(arm, DryRunArm):
+        return True, "dry-run arm: limiter checked by calculation only"
+    for _ in range(5):
+        try:
+            c = arm.get_coords()
+            if isinstance(c, (list, tuple)) and len(c) == 6:
+                calc = arm_points(HOME)[5]
+                err = float(np.linalg.norm(np.array(c[:3]) - calc))
+                ok = err <= 20
+                return ok, f"calculated flange {np.round(calc, 1).tolist()} vs arm {list(c[:3])}: {err:.1f} mm apart"
+        except Exception:
+            pass
+        time.sleep(0.2)
+    return False, "the arm did not report its position (get_coords)"
+
+
+def respond_level(arm, level):
+    """Run one level's move if the limiter allows it. Returns (pose read back or None, signed degrees, problem)."""
+    target, d, problem = level_target(level)
+    if problem or not LIMITER_OK:
+        return None, d, problem or f"limiter not trusted on this arm ({LIMITER_NOTE})"
+    move(arm, target)
     move(arm, HOME)
-    return arm.get_angles()
+    return read_angles(arm, fallback=HOME), d, None
 
 
-# Self-check: a gradual rise, a fall, then a single jump past every level.
-_lv = parse_levels("0.01:J4:20,0.05:J1:25,0.2:J6:30")
-assert _lv == [(0.01, 3, 20.0), (0.05, 0, 25.0), (0.2, 5, 30.0)], _lv
-_series = ([0.004] * 3 + [0.012, 0.011, 0.013]      # crosses 0.01 once, despite noise around it
-           + [0.03, 0.06, 0.055, 0.25, 0.3]          # crosses 0.05, then 0.2
-           + [0.1, 0.02, 0.004]                      # falls below every level: all re-arm
-           + [0.35, 0.36])                           # one jump past all three: only the highest moves
+LIMITER_OK, LIMITER_NOTE = limiter_trusted(arm)
+print(f"table limiter: {'active' if LIMITER_OK else 'NOT TRUSTED, level moves disabled'} ({LIMITER_NOTE}); "
+      f"start pose lowest point {lowest_point(HOME):.0f} mm above the table")
+
+# Limiter self-checks: the geometry matches the manual (all joints at 0 → arm straight up, flange 516.7 mm high;
+# shoulder at 90° → arm horizontal at shoulder height 173.9 mm), a pose that dips into the table is blocked,
+# and a small move from an upright pose is allowed.
+assert abs(arm_points([0] * 6)[5][2] - 516.68) < 0.1
+assert abs(arm_points([0, 90, 0, 0, 0, 0])[5][2] - 173.9) < 0.1
+assert pose_problem([0] * 6, [0, 100, 60, 0, 0, 0]) is not None
+assert pose_problem([0] * 6, [0, 15, 0, 0, 0, 0]) is None
+assert pose_problem([0] * 6, [0, 0, 0, 0, 160, 0]) is not None          # joint-limit margin
+_tip = lambda pose: arm_points(pose)[-1][2]
+_lean = [0, 30, 0, 0, 0, 0]                                               # arm leaning forward
+assert _tip([0, 45, 0, 0, 0, 0]) < _tip(_lean) < _tip([0, 15, 0, 0, 0, 0])   # bending back toward upright lifts the tip
+
+
+# Self-check with the preset: a gradual rise moves wrist → base, then a single jump moves only the base.
+_lv = parse_levels("preset")
+assert [(od, j + 1, d) for od, j, d in _lv] == [(0.006, 5, 15), (0.015, 4, 15), (0.04, 3, 15), (0.1, 2, 15), (0.25, 1, 15)], _lv
+_series = ([0.004] * 3 + [0.007, 0.0065, 0.0068]    # crosses 0.006 once, despite noise around it
+           + [0.02, 0.05, 0.045, 0.12, 0.3, 0.35]    # crosses 0.015, 0.04, 0.1, then 0.25
+           + [0.1, 0.02, 0.003]                      # falls below every level: all re-arm
+           + [0.38, 0.39])                           # one jump past all five: only the base moves
 _lt = LevelTrigger(_lv)
 _hits = [(i, _lv[k][1] + 1) for i, v in enumerate(_series) if (k := _lt.update(v)) is not None]
-assert _hits == [(3, 4), (7, 1), (9, 6), (14, 6)], _hits
-assert _lt.update(0.36) is None and _lt.update(0.3) is None     # stays high: no re-fire
+assert _hits == [(3, 5), (6, 4), (7, 3), (9, 2), (10, 1), (15, 1)], _hits
+assert _lt.update(0.39) is None and _lt.update(0.3) is None     # stays high: no re-fire
 _start_high = LevelTrigger(_lv)                                  # run starts with a vial already in (OD 0.03)
-assert [_start_high.update(v) for v in (0.03, 0.03, 0.06)] == [None, None, 1]   # no move at start; 0.05 still fires
-print(f"level self-check passed: crossings → joints {[j for _, j in _hits]} (J4, J1, J6, then J6 only for the jump)")
+assert [_start_high.update(v) for v in (0.03, 0.03, 0.05)] == [None, None, 2]   # no move at start; 0.04 still fires
+print(f"level self-check passed: rising OD → joints {[j for _, j in _hits]} (J5 wrist … J1 base, then base only for the jump)")
 
 # %%
 def simulated_od():
@@ -394,9 +515,12 @@ try:
         if level_trigger:
             k = level_trigger.update(od)
             fired = k is not None
-            pose = respond_level(arm, LEVELS[k]) if fired else None
-            lvl, j, d = LEVELS[k] if fired else (None, None, None)
-            event = f"ARM MOVED J{j + 1} {d:+g}° (level {lvl})" if fired else ""
+            pose, d, problem = respond_level(arm, LEVELS[k]) if fired else (None, None, None)
+            lvl, j = (LEVELS[k][0], LEVELS[k][1]) if fired else (None, None)
+            if fired and problem:
+                event = f"BLOCKED J{j + 1} {d:+g}° (level {lvl}): {problem}"
+            else:
+                event = f"ARM MOVED J{j + 1} {d:+g}° (level {lvl})" if fired else ""
             state = " ".join(f"{od_l}:{'armed' if a else 'fired'}" for (od_l, _, _), a in zip(LEVELS, level_trigger.armed))
             log.append(dict(time=ts, od=od, threshold=lvl if fired else "", event=event,
                             pose=[round(a, 1) for a in pose] if pose else ""))
