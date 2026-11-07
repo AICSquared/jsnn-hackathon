@@ -250,7 +250,13 @@ def main():
     nb = json.loads(SRC.read_text())
     cells = nb['cells']
     starter17 = ''.join(cells[17]['source'])
-    CELLS[17] = starter17.split('# TODO: call display_trajectory_gif')[0].rstrip() + '\n' + PLOT
+    helpers = starter17.split('# TODO: call display_trajectory_gif')[0].rstrip() + '\n'
+    raw = "        ax.imshow(images[frame], cmap='gray')\n"
+    assert helpers.count(raw) == 1, 'starter GIF helper changed; update the mask-overlay patch'
+    # Brief item 5 asks for colony overlays in the GIF: draw each frame's territory masks over the raw image.
+    helpers = helpers.replace(raw, raw + "        ax.imshow(np.ma.masked_equal(masks[frame], 0), cmap='tab20', "
+                                         "alpha=0.35, interpolation='nearest')\n")
+    CELLS[17] = helpers + PLOT
     for index, text in CELLS.items():
         assert cells[index]['cell_type'] == 'code', index
         cells[index]['source'] = source_lines(text)
