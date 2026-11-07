@@ -24,3 +24,31 @@ Real examples from the hackathon, for the AI report. Times are UTC on Nov 7, 202
 - One challenge per person in parallel (Digital Twin: Alex; Biofilm: Brandon). Robotics: Brandon on the reactor and OD data, Alex on the arm, meeting at one function (`latest_od`).
 - Agents coordinated through a GitHub-issue board with ACK / DONE / BLOCKED / STATUS labels (added to AGENTS.md mid-event after an agent went quiet for ~1 h).
 - Humans decided: work split, merges, submissions, hardware. Agents: reading docs and source, writing and running code, verifying, drafting docs and emails.
+
+## Working alongside the AI: how humans and agents shared the work
+
+The agent didn't work alone. It regularly stopped to ask for decisions, sent us to do things only a person could, and took corrections mid-task.
+
+**The AI asked for clarification before committing to a direction**
+- At planning time it asked which challenge the plan should cover (a second challenge's zip had arrived unexpectedly), how much time we had, and how to split the work. We answered "Digital Twin for Alex, assign the other to Brandon, 2 hours".
+- For the robotics bonus it asked which hardware we had, who should own it, what the deliverable should be (a Colab notebook can't drive a USB arm), and the time budget. We answered "plan for both, split it, script + Colab doc, 1 hour", and the plan was built around those answers.
+- It asked before every merge into `main` and before every outward action (posting on others' behalf, drafting email). Merges happened only after "Yes, merge it".
+
+**The AI asked us to run things on our side, or go somewhere**
+- **Colab debugging:** the agent couldn't see Colab, so it asked Alex to run the notebook there, paste the red error block, download the run, then run two `pip list` / `pip freeze` commands. Those two pastes let it isolate the faulty package (plum-dispatch 2.9.0) in minutes.
+- **Hardware:** it asked us to check the arm's model (M5 vs Pi), plug in the emergency stop, power the arm, and find its IP address. It also asked us to check whether the Pioreactor kit came with a Raspberry Pi before fetching Alex's Pi 5 from the dorm.
+- **Submissions:** it prepared the files and the email drafts, but sending stayed with Alex. Attaching the 7.9 MB notebook and pressing Send were human steps by design.
+- **Teammates:** when Brandon's agent went quiet, it suggested messaging Brandon directly (Discord or in person) rather than taking over his files.
+
+**We corrected and steered the AI mid-task**
+- "The deliverable will be a Colab doc", "put everything in a single repo", "commit frequently", "post on the board every time": each became a standing rule, and the agent moved its reference folders into the repo, set up per-commit board posts, and saved them to memory.
+- "The guide will be used to explain our work to judges": the agent restructured GUIDE.md around a 30-second pitch and likely judge questions.
+- "The wording makes the arm sound like a prize": fixed in the README.
+- When Brandon's agent went silent for about an hour, Alex had the agent add ACK / DONE / BLOCKED / STATUS rules to AGENTS.md. Brandon's agent adopted them within minutes.
+
+**Agents coordinated with each other, with humans in charge**
+- The two agents talked only through the board. Alex's agent asked for a handoff before touching Brandon's files rather than editing them, and Brandon's agent asked Brandon before running the metrics script on his logs.
+- Brandon's agent caught 4 wording errors in Alex's README; Alex's agent caught a missing requirement (GIF overlays) in Brandon's notebook.
+
+**The AI also taught**
+- Alex used `/rederive`: the agent posed the design problems (how to load real cells into a simulator; how to check the conversion) and Alex re-derived the solutions himself, with progress logged locally.
