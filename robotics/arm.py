@@ -239,8 +239,21 @@ if live:
     live = first is not None
 if live:
     SOURCE = f"live Pioreactor OD (experiment {EXPERIMENT})"
-    THRESHOLD = round(first[1] + 0.02, 4)      # just above the current reading, so growth (or a nudge) crosses it
-    MARGIN = 0.01
+    # Threshold from the live signal itself: the last ~12 readings give the current level and its noise.
+    # Trigger a little above normal noise (4 standard deviations, at least 0.0002 OD), so noise alone never
+    # fires the arm but a real rise in OD does. Re-arm only after OD falls back 2 noise-widths below it.
+    # Override for a demo with OD_THRESHOLD / OD_MARGIN environment variables.
+    try:
+        now_iso = leader_now()
+        pts = sorted(get_od_series(EXPERIMENT).get(SERIES_USED, []), key=lambda p: _when(p[0]))
+        pts = [p for p in pts if not now_iso or _when(p[0]) <= _when(now_iso)][-12:]
+        vals = np.array([p[1] for p in pts]) if len(pts) >= 3 else np.array([first[1]])
+    except Exception:
+        vals = np.array([first[1]])
+    level, noise = float(vals.mean()), float(vals.std())
+    THRESHOLD = float(os.environ.get("OD_THRESHOLD", round(level + max(4 * noise, 0.0002), 5)))
+    MARGIN = float(os.environ.get("OD_MARGIN", round(max(2 * noise, 0.0001), 5)))
+    print(f"live baseline: OD {level:.5f} ± {noise:.5f} over {len(vals)} readings")
     POLLS, EVERY = 60, 5.0                     # 5 minutes of polling every 5 s
     def readings():
         for _ in range(POLLS):
