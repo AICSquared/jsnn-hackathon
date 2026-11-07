@@ -320,11 +320,11 @@ textbox(x + pw + 0.2, y, CW - pw - 0.2, 3.9, [
 # ================================================================= COLUMN 3: Biofilm + conclusions
 x, y = X[2], TOP
 y = header(x, y, CW, "2 · Biofilm Movement & Breakup", "hdr_bf")
-textbox(x, y, CW, 2.0, [
+textbox(x, y, CW, 2.5, [
     [("Task: ", {"bold": True}), ("from 17 microscope frames and colony masks, measure each colony's centroid track, displacement and "
-      "path length, plus the change in a supplied 0–100 breakup score (first frame ≥ 40). Auto-graded to 0.05 px.", {})],
+      "path length, plus the change in a supplied 0–100 breakup score (first frame ≥ 40). Auto-graded: centroids to 0.05 px, distances to 0.10 px, crossing frames exact.", {})],
 ], name="txt_bf_task")
-y += 2.1
+y += 2.5
 img_h = CW * (4.85 / 8.2)
 picture(A / "biofilm_overlay.png", x, y, w=CW, name="img_biofilm", alt="Final microscope frame with colony masks and centroid trails")
 y += img_h + 0.1
@@ -348,14 +348,14 @@ ch.plots[0].gap_width = 60
 style_axis(ch.category_axis, "colony ID", 19)
 style_axis(ch.value_axis, "pixels", 19, fmt="0", minv=0, maxv=55, major=10)
 y += 6.8
-textbox(x, y, CW, 3.2, [
+textbox(x, y, CW, 3.9, [
     [("Colony 33 ", {"bold": True, "bullet": True}), ("moved farthest: 37.2 px net (42.9 px path), a direct drift.", {})],
-    [("Colony 27 ", {"bold": True, "bullet": True}), ("broke up most: score +45, first ≥ 40 at frame 8; its path (31.0 px) far exceeds "
-      "its net displacement (12.8 px), so it wandered.", {})],
+    [("Colony 27 ", {"bold": True, "bullet": True}), ("had the largest breakup-score increase: +45, first ≥ 40 at frame 8; its path (31.0 px) "
+      "far exceeds its net displacement (12.8 px), so it wandered. 3 of 8 colonies reached 40 (41 already at frame 0, 33 at frame 14).", {})],
     [("Caveat: ", {"bold": True, "bullet": True}), ("a centroid also moves when a colony changes shape; a score is not proof of cell "
       "release.", {})],
 ], size=22, name="txt_bf_results")
-y += 3.35
+y += 3.9
 
 y = header(x, y, CW, "Conclusions", "hdr_conc")
 textbox(x, y, CW, BOTTOM - y, [
