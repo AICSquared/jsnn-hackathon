@@ -6,8 +6,10 @@ Our team repo for the JSNN hackathon (Nov 7, 2026). Each challenge is a self-con
 | Challenge | Folder | Owner | Notebook | Result |
 |---|---|---|---|---|
 | 1. Digital Twin: simulate an E. coli colony | [`digital-twin/`](digital-twin/) | Alex | [`digital_twin.ipynb`](digital-twin/digital_twin.ipynb) | Predicts cell count within **4.8%** and area within **1.1%** of the real cells |
-| 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 broke up most (+45) |
+| 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 had the largest breakup-score increase (+45) |
 | 3+ | not announced yet | | | |
+
+**Open in Colab:** Digital Twin [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/digital-twin/digital_twin.ipynb) · Biofilm [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/biofilm/biofilm_dispersion.ipynb)
 
 **New here? Read in this order:** this README → [GUIDE.md](GUIDE.md) (what everything means, and how to explain it to judges) → the notebooks.
 
@@ -67,12 +69,12 @@ The `refs/` folder and the Python environment (`digital-twin/.venv`) only exist 
 Both notebooks already contain their saved outputs (plots, tables, video), so you can **read them without running anything**. To run one yourself:
 
 **Digital Twin** (downloads its own data):
-1. Go to [colab.research.google.com](https://colab.research.google.com), then **File → Open notebook → GitHub**. Paste `alexwilldev/jsnn-hackathon` and pick `digital-twin/digital_twin.ipynb`.
+1. Click the Digital Twin **Open in Colab** badge at the top of this README (or in Colab: **File → Open notebook → GitHub**, paste `alexwilldev/jsnn-hackathon`, pick `digital-twin/digital_twin.ipynb`).
 2. Choose **Runtime → Run all**. The first cell installs the exact package versions and downloads the challenge data. If it says the runtime restarts, wait a moment and choose **Run all** again (it only does this once).
 3. It takes about 6–10 minutes: the simulation runs 3 random seeds for each set of rules.
 
 **Biofilm** (you supply the data):
-1. Open `biofilm/biofilm_dispersion.ipynb` the same way.
+1. Click the Biofilm **Open in Colab** badge (or open `biofilm/biofilm_dispersion.ipynb` the same way).
 2. Click the **folder icon** on the left and upload `biofilm.zip`, `colony_masks.npz` and `breakup_scores.csv` from the organisers' zip.
 3. Choose **Runtime → Run all**.
 
@@ -138,10 +140,10 @@ Division matters most. Position barely matters in this window. The twin's count 
 - **centroid**: the mean x, y of the colony's pixels;
 - **displacement**: the distance from its first centroid;
 - **step and cumulative distance**: how far it moved each frame, and in total;
-- **breakup change**: the score minus its first score;
+- **breakup change**: the score minus its first *finite* score;
 - **first threshold frame**: the first frame where the score is ≥ 40.
 
-Missing frames are NaN and never zero, and a step is never counted across a gap. 70 of the 100 points are auto-graded to 0.05 px, so the code checks itself against the starter's worked example and a missing-frame case. Details: [GUIDE.md §3](GUIDE.md) and [`biofilm/interpretation.md`](biofilm/interpretation.md).
+Missing frames are NaN and never zero, and a step is never counted across a gap. 70 of the 100 points are auto-graded within tight tolerances (centroids 0.05 px, distances 0.10 px, score changes 0.01, exact frame numbers for crossings), so the code checks itself against the starter's worked example and a missing-frame case. Details: [GUIDE.md §3](GUIDE.md) and [`biofilm/interpretation.md`](biofilm/interpretation.md).
 
 ---
 
@@ -176,9 +178,9 @@ The goal is that either of us can explain *either* notebook to a judge without t
 | In `RULE2`, set `delta_mean=1.31` (the 2 complete cycles) | ? | Count error hardly moves in 0–65 min; more cells in the hidden period |
 | In `RULE2`, set `use_birth_estimate=False` | ? | Count lags badly: every frame-0 cell is treated as newborn |
 | In `RULE1`, double `alpha_mean_per_h` | ? | Area overshoots fast |
-| Biofilm: change `THRESHOLD` to 30 | ? | More colonies cross, earlier |
+| Biofilm: change `THRESHOLD` to 30 | ? | 4 colonies cross instead of 3, and earlier |
 
-**Level 4: rederive the design.** In Claude Code, run `/rederive`. It asks you to re-invent each design decision from the problem (for example "how do you make a closed box behave like a chamber with one open side?") instead of explaining the code. Progress is saved in `.rederive/log.md` (local only).
+**Level 4: rederive the design.** In Claude Code, run `/rederive` (on some setups it's `/rederive:rederive`). It asks you to re-invent each design decision from the problem (for example "how do you make a closed box behave like a chamber with one open side?") instead of explaining the code. Progress is saved in `.rederive/log.md` (local only).
 
 **Words to know:** digital twin, exponential growth, doubling time, adder rule, Δ, capsule, seed, % error, centroid, displacement, NaN. All are defined in [GUIDE.md §6](GUIDE.md).
 
