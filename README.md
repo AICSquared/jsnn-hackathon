@@ -1,13 +1,13 @@
 # JSNN Hackathon
 ## Alex Williams and Brandon Townsend
 
-Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The bonus robotics challenge uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
+Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The third challenge, Robotics that Responds, uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
 
 | Challenge | Folder | Owner | Notebook | Result |
 |---|---|---|---|---|
 | 1. Digital Twin: simulate an E. coli colony | [`digital-twin/`](digital-twin/) | Alex | [`digital_twin.ipynb`](digital-twin/digital_twin.ipynb) | Predicts cell count within **4.8%** and area within **1.1%** of the real cells · **2nd place, stage 1** |
 | 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 had the largest breakup-score increase (+45) |
-| Bonus: Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | `robotics.ipynb` (in progress) | Planned: see [`robotics/PLAN.md`](robotics/PLAN.md) |
+| 3. Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | [`robotics.ipynb`](robotics/robotics.ipynb) | Objectives 1–4 done (live OD stream; arm test movement within ~1°); 5 (OD-triggered arm) awaiting the live soap test. See [`robotics/PROGRESS.md`](robotics/PROGRESS.md) |
 
 **Open in Colab:** Digital Twin [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/digital-twin/digital_twin.ipynb) · Biofilm [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/biofilm/biofilm_dispersion.ipynb)
 
@@ -47,7 +47,7 @@ jsnn-hackathon/
 │   ├── build_notebook.py                 fills the starter's TODO cells → the deliverable
 │   └── interpretation.md                 the 148-word interpretation (also inside the notebook)
 │
-├── robotics/                 ← Bonus challenge (Brandon: reactor + live OD; Alex: arm)
+├── robotics/                 ← Challenge 3: Robotics that Responds (Brandon: reactor + live OD; Alex: arm)
 │   ├── PLAN.md                 1-hour plan: objectives, API, the two-track split, risks
 │   ├── od.py                   (Track A) find the experiment, stream live OD, record/replay
 │   ├── arm.py                  (Track B) myCobot 320 control, dry-run fallback, OD threshold trigger
@@ -85,7 +85,7 @@ Both notebooks already contain their saved outputs (plots, tables, video), so yo
 2. Click the **folder icon** on the left and upload `biofilm.zip`, `colony_masks.npz` and `breakup_scores.csv` from the organisers' zip.
 3. Choose **Runtime → Run all**.
 
-**Robotics (bonus):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on a laptop on the same WiFi as the myCobot, with `ARM_IP=<arm IP>`. See [`robotics/PLAN.md`](robotics/PLAN.md) and [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
+**Robotics (challenge 3):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on a laptop on the same WiFi as the myCobot, with `ARM_IP=<arm IP>`. See [`robotics/PLAN.md`](robotics/PLAN.md) and [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
 
 #### Moving the myCobot 320 by hand
 1. On the arm's Raspberry Pi (SSH in with the arm's default login from its manual), start the control server and leave it running: `python3 ~/Server_320.py`. Wait for "waiting connect". The emergency stop must be plugged in and released.
