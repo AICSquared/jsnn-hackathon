@@ -12,6 +12,7 @@
 # %%
 import csv
 import json
+import os
 import time
 import urllib.error
 import urllib.parse
@@ -19,7 +20,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-API = "https://api.environnets.com/api"
+# Organisers' tunnel by default. For our own reactor on the same network, set PIOREACTOR_API before running,
+# e.g. PIOREACTOR_API=http://<hostname>.local/api, or assign od.API in the notebook.
+API = os.environ.get("PIOREACTOR_API", "https://api.environnets.com/api").rstrip("/")
 TIMEOUT_S = 8
 MODE = "auto"        # "auto": live, falling back to replay on failure | "live": never replay | "replay": never call the API
 
