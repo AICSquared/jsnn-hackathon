@@ -80,6 +80,73 @@ jsnn-hackathon/
 
 The `refs/` folder and the Python environment (`digital-twin/.venv`) only exist on the machine that made them. Git ignores them, and the notebooks don't need them because they download what they need themselves.
 
+
+### Architecture at a glance
+
+```mermaid
+flowchart TD
+
+subgraph group_twin["Digital Twin"]
+  node_twin_measure["Frame measurements<br/>[digital_twin.py]"]
+  node_twin_model["Growth rules<br/>[digital_twin.py]"]
+  node_twin_sim["Colony simulation<br/>[digital_twin.py]"]
+  node_twin_eval["Prediction evaluation<br/>[digital_twin.py]"]
+  node_twin_result["Prediction outputs<br/>[digital_twin.py]"]
+end
+
+subgraph group_biofilm["Biofilm Analysis"]
+  node_bio_masks["Colony masks<br/>[build_notebook.py]"]
+  node_bio_tracks["Movement tracking<br/>[build_notebook.py]"]
+  node_bio_breakup["Breakup analysis<br/>[build_notebook.py]"]
+  node_bio_summary["Colony results<br/>[build_notebook.py]"]
+end
+
+subgraph group_robotics["Robotics Response"]
+  node_od_stream["OD stream and replay<br/>[od.py]"]
+  node_arm_trigger["OD threshold trigger<br/>[arm.py]"]
+  node_arm_control["Arm movement<br/>[arm.py]"]
+  node_robot_result["Trigger log<br/>[arm.py]"]
+end
+
+subgraph group_external["External Systems"]
+  node_twin_data["Challenge data"]
+  node_bio_data["Uploaded biofilm data"]
+  node_od_api["Pioreactor API"]
+  node_mycobot["myCobot 320"]
+end
+
+node_user(("Challenge user"))
+
+node_user -->|"provides data"| node_twin_data
+node_twin_data -->|"loads measurements"| node_twin_measure
+node_twin_measure -->|"calibrates rules"| node_twin_model
+node_twin_model -->|"configures"| node_twin_sim
+node_twin_sim -->|"emits runs"| node_twin_eval
+node_twin_eval -->|"writes prediction"| node_twin_result
+node_user -->|"uploads files"| node_bio_data
+node_bio_data -->|"loads images and masks"| node_bio_masks
+node_bio_masks -->|"measures centroids"| node_bio_tracks
+node_bio_tracks -->|"joins movement and scores"| node_bio_breakup
+node_bio_breakup -->|"summarizes colonies"| node_bio_summary
+node_user -->|"runs notebook"| node_od_stream
+node_od_stream -->|"fetches OD"| node_od_api
+node_arm_trigger -->|"reads latest OD"| node_od_stream
+node_arm_trigger -->|"commands on crossing"| node_arm_control
+node_arm_control -->|"sends movements"| node_mycobot
+node_arm_trigger -->|"records events"| node_robot_result
+
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+class node_twin_measure,node_twin_model,node_twin_sim,node_twin_eval,node_twin_result,node_user toneBlue
+class node_bio_masks,node_bio_tracks,node_bio_breakup,node_bio_summary toneAmber
+class node_od_stream,node_arm_trigger,node_arm_control,node_robot_result toneMint
+class node_twin_data,node_bio_data,node_od_api,node_mycobot toneRose
+```
+
+*Diagram generated with [GitDiagram](https://gitdiagram.com/alexwilldev/jsnn-hackathon). Blue: Digital Twin · amber: Biofilm · green: Robotics · red: external data and hardware.*
+
 ---
 
 ## 2. Run the notebooks
