@@ -469,4 +469,25 @@ display(NotebookImage(data=gif.getvalue(), format="gif"))
 # %% [markdown]
 # ## Step 8: discussion
 #
-# DISCUSSION_PLACEHOLDER
+# **What each rule changed.**
+# * **Rule 1 (growth)** gets the *area* right on its own (1.3% error): cells grow exponentially, at a much slower
+#   pace than textbook E. coli (doubling ≈ 144 min instead of ~40), and we measured that from the data rather
+#   than using the framework default. Without division, though, the count stays flat (14% error).
+# * **Rule 2 (division, adder)** is the rule that matters most: the count error drops from 14% to about 5%, and the
+#   area error improves too, because daughters are packed and pushed out of the opening realistically.
+#   Getting the *frame-0 cells* right was essential: treating them as newborn delays every division by a whole
+#   cycle, and treating them all as "average age" made every long cell divide in the first 5 minutes (a burst
+#   the real data does not show). Drawing each cell's division length from the real division lengths fixed both.
+# * **Rule 3 (position)** is supported by the data only weakly (cells at the opening grow ~13% faster than average,
+#   but the correlation is small, r ≈ 0.08), and it changes the error by less than 0.1 percentage points. We keep it
+#   because it is measured, but it is not what drives the colony in this 135-minute window.
+#
+# **Where the twin is still off.** The twin's count falls behind the real count after ~20 minutes (about 308 vs 337
+# cells at 65 min) while its area stays on target. In the real colony the area per cell *shrinks* (2.30 → 2.08 µm²
+# per cell): real cells are dividing at smaller sizes than a steady adder predicts. Both complete cycles we could
+# observe added only 1.3 µm instead of our estimated 1.7 µm, but the window is too short to measure this reliably
+# (most cells take longer than 65 minutes to complete one cycle). We therefore expect our hidden-period count to be
+# an underestimate, and our area prediction to be the more reliable of the two.
+#
+# **Next steps with more time:** measure Δ on longer recordings; slow growth under crowding (Viva-munk's pressure
+# option) for cells deep in the chamber; and use the COMSOL flow field as a nutrient map instead of plain distance.

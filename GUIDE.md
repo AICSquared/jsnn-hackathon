@@ -2,7 +2,7 @@
 
 **Purpose:** help us explain our work to the judges. It's written in plain language, so either of us can present either challenge.
 Sections 1–2 are what we say. The rest is the background that lets us answer follow-up questions.
-Blanks like **`[__]`** are filled in with our real numbers once the notebook runs.
+All numbers below come from the executed notebook `digital-twin/digital_twin.ipynb`.
 
 - [1. Talking to the judges](#1-talking-to-the-judges)
 - [2. Challenge 1: Digital Twin](#2-challenge-1-digital-twin)
@@ -16,24 +16,24 @@ Blanks like **`[__]`** are filled in with our real numbers once the notebook run
 ## 1. Talking to the judges
 
 ### 1.1 Digital Twin: the 30-second version
-> "We built a simulation of a real E. coli colony that starts from the first microscope photo and predicts the next 70 minutes. We didn't guess any rules. We measured each one from the tracking data, added them one at a time, and checked how much each one cut the error. Cells grow exponentially, at about **`[__]`**-minute doubling. They divide by the *adder* rule, adding about **`[__]` µm** of length each cycle. Cells near the open side, where food arrives, grow **`[__]`%** faster. With all three rules, our twin is within **`[__]`%** of the real cell count and **`[__]`%** of the real area."
+> "We built a simulation of a real E. coli colony that starts from the first microscope photo and predicts the next 70 minutes. We didn't guess any rules. We measured each one from the tracking data, added them one at a time, and checked how much each one cut the error. Cells grow exponentially, but slowly, doubling about every **144** minutes. They divide by the *adder* rule, adding about **1.7 µm** of length each cycle. Cells near the open side, where food arrives, grow about **13%** faster, though that effect is weak. With all three rules, our twin is within **4.8%** of the real cell count and **1.1%** of the real area."
 
 ### 1.2 Digital Twin: the story, one rule at a time
 | Step | Question | What we measured | What it did to the twin |
 |---|---|---|---|
 | Start | Can we reproduce the first photo? | 248 cells loaded from frame 0, in a 34 × 60 µm box open on the right | Cells appear exactly where the real ones are (overlay plot) |
-| Rule 1: growth | Same amount per minute, or same percentage? | log(length) vs time is a straight line, so growth is exponential. Rate α = **`[__]`/h** (cells differ by CV **`[__]`**) | Area rises like the real area, but the count stays flat because nobody divides |
-| Rule 2: division | At a fixed size, or after adding a fixed amount? | From the family tree, added length Δ is **`[__]`** µm and does **not** depend on birth size, so it's an adder. Daughters are about half the mother | Count now rises. Error drops from **`[__]`%** to **`[__]`%** |
-| Rule 3: position | Do cells near the food grow faster? | Growth rate vs x: **`[__]`** | Error goes from **`[__]`%** to **`[__]`%** |
-| (Extra) flow | Is the fluid flow a better food signal than distance? | **`[__]`** | **`[__]`** |
+| Rule 1: growth | Same amount per minute, or same percentage? | log(length) vs time is a straight line, so growth is exponential. Rate α = **0.29/h** (doubling ≈ 144 min; cells differ by CV **0.31**); longer cells add more µm/min (r = 0.55) | Area is already close (1.3% error), but the count stays flat because nobody divides (14.3% error) |
+| Rule 2: division | At a fixed size, or after adding a fixed amount? | From the family tree, mothers divide at 3.61 µm and daughters are born at 1.93 µm (each about half), so Δ ≈ **1.68** µm. Only 2 full cycles fit in 65 min, so we take the adder from the literature and estimate Δ from division and birth lengths | Count now rises. Count error drops from **14.3%** to **4.8%**; area error improves to **1.1%** |
+| Rule 3: position | Do cells near the food grow faster? | Growth rate vs x: +0.6% per µm toward the opening (+13% at the opening), but weak (r = 0.08) | Almost no change: 4.79% → 4.75% count error. Measured, but not what drives this colony |
+| (Extra) flow | Is the fluid flow a better food signal than distance? | Not attempted (time) | Next step |
 
 ### 1.3 Questions judges might ask, and our answers
 - **"Why exponential and not linear growth?"** On a log scale, each cell's length rises in a straight line, which means the same percentage every minute. The linear fit was worse (show the plot).
-- **"How do you know it's an adder?"** For an adder, the length added between birth and division is roughly constant whatever the birth length. For a sizer, the division length would be constant instead. Our scatter of added length vs birth length is flat. (Literature: Taheri-Araghi et al., 2015.)
-- **"Why does your twin's count lag (or lead) the real one?"** Cells in the first photo are at random points in their lives. We estimated how far along each one was (a long cell is close to dividing) instead of treating them all as newborns. Remaining gap: **`[__]`**.
-- **"Why several random seeds?"** Each simulated cell draws its own growth rate and added length from the measured spread, so runs differ. We average **`[__]`** seeds to report a stable number.
+- **"How do you know it's an adder?"** Honest answer: our 65-minute window is shorter than one cell cycle (~144 min), so we see only 2 cells from birth to division. That isn't enough to prove adder vs sizer from these data alone. We use the adder because it's the established rule for E. coli (Taheri-Araghi et al., 2015) and Viva-munk implements it. We measured Δ from the 92 divisions we did see (division length 3.61 µm, birth length 1.93 µm). Division lengths also vary a lot (CV 0.20), which fits an adder better than a strict sizer.
+- **"Why does your twin's count lag (or lead) the real one?"** Cells in the first photo are at random points in their lives. Treated as newborns, they all divide a cycle late. Treated as average age, every long cell divides in the first 5 minutes, a burst the real data doesn't show. We drew each frame-0 cell's division length from the 92 real division lengths longer than it is now. The remaining gap: our count falls about 8% behind by 65 min (308 vs 337) while area stays on target. Real cells get smaller on average (2.30 → 2.08 µm² per cell), i.e. they divide at smaller sizes than a steady adder predicts.
+- **"Why several random seeds?"** Each simulated cell draws its own growth rate and added length from the measured spread, so runs differ. We average **3** seeds (the spread is shown as faint lines on each plot) to report a stable number.
 - **"Did you tune parameters to fit the curve?"** No. Every number comes from measuring individual cells, not from fitting the count curve. That's why the hidden 70 minutes is a real prediction.
-- **"Where is the twin still wrong?"** **`[__]`** (e.g. cells pushed out of the opening, crowding slowing growth deep in the chamber, or cell-shape details).
+- **"Where is the twin still wrong?"** The count runs about 5% low (cells divide a bit too late), so our hidden-period count is probably an underestimate. Area is the more reliable prediction (1.1% error).
 - **"What would you do with more time?"** Use the COMSOL flow field as a food map; add slowdown under crowding (Viva-munk has a pressure option); fit each cell's own growth rate rather than a shared mean.
 
 ### 1.4 Biofilm: the 30-second version

@@ -12,9 +12,13 @@ while true; do
   dirs=""
   for d in digital-twin biofilm shared tools; do
     if [ -d "$d" ]; then
-      files=$(find "$d" -type f | wc -l | tr -d ' ')
-      bytes=$(find "$d" -type f -exec cat {} + 2>/dev/null | wc -c | tr -d ' ')
-    else files=0; bytes=0; fi
+      files=$(find "$d" -path "$d/.venv" -prune -o -type f -print | wc -l | tr -d ' ')
+      bytes=$(find "$d" -path "$d/.venv" -prune -o -type f -print0 | xargs -0 cat 2>/dev/null | wc -c | tr -d ' ')
+    else
+      # not on this branch (e.g. Brandon's folder merged to main): measure it on origin/main
+      files=$(git ls-tree -r -l origin/main -- "$d" 2>/dev/null | wc -l | tr -d ' ')
+      bytes=$(git ls-tree -r -l origin/main -- "$d" 2>/dev/null | awk '{s+=$4} END{print s+0}')
+    fi
     dirs="$dirs\"$d\":{\"files\":$files,\"bytes\":$bytes},"
   done
   dirty=$(git diff --numstat 2>/dev/null | awk '{a+=$1;d+=$2} END{printf "{\"add\":%d,\"del\":%d}", a, d}')
