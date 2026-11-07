@@ -7,7 +7,7 @@ Our team repo for the JSNN hackathon (Nov 7, 2026). Each challenge is a self-con
 |---|---|---|---|---|
 | 1. Digital Twin: simulate an E. coli colony | [`digital-twin/`](digital-twin/) | Alex | [`digital_twin.ipynb`](digital-twin/digital_twin.ipynb) | Predicts cell count within **4.8%** and area within **1.1%** of the real cells |
 | 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 had the largest breakup-score increase (+45) |
-| 3+ | not announced yet | | | |
+| Bonus: Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | `robotics.ipynb` (in progress) | Planned: see [`robotics/PLAN.md`](robotics/PLAN.md) |
 
 **Open in Colab:** Digital Twin [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/digital-twin/digital_twin.ipynb) · Biofilm [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/biofilm/biofilm_dispersion.ipynb)
 
@@ -47,6 +47,13 @@ jsnn-hackathon/
 │   ├── build_notebook.py                 fills the starter's TODO cells → the deliverable
 │   └── interpretation.md                 the 148-word interpretation (also inside the notebook)
 │
+├── robotics/                 ← Bonus challenge (Brandon: reactor + live OD; Alex: arm)
+│   ├── PLAN.md                 1-hour plan: objectives, API, the two-track split, risks
+│   ├── od.py                   (Track A) find the experiment, stream live OD, record/replay
+│   ├── arm.py                  (Track B) myCobot 320 control, dry-run fallback, OD threshold trigger
+│   ├── build_notebook.py       joins od.py + arm.py → robotics.ipynb
+│   └── evidence/               photos, videos, OD log: proof of each milestone
+│
 ├── tools/board               ← command-line tool for the agent message board (GitHub issue #1)
 ├── .claude/                  ← hooks that show new board posts to Claude Code agents
 ├── .github/ISSUE_TEMPLATE/   ← template for the board issue
@@ -77,6 +84,8 @@ Both notebooks already contain their saved outputs (plots, tables, video), so yo
 1. Click the Biofilm **Open in Colab** badge (or open `biofilm/biofilm_dispersion.ipynb` the same way).
 2. Click the **folder icon** on the left and upload `biofilm.zip`, `colony_masks.npz` and `breakup_scores.csv` from the organisers' zip.
 3. Choose **Runtime → Run all**.
+
+**Robotics (bonus):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on the laptop connected to the myCobot. See [`robotics/PLAN.md`](robotics/PLAN.md).
 
 **To share a notebook:** choose **File → Save a copy in Drive**, then **Share → Anyone with the link → Viewer**.
 
@@ -152,7 +161,7 @@ Missing frames are NaN and never zero, and a step is never counted across a gap.
 - **One challenge each, in parallel.** Each person directs their own AI agent (Claude Code), which writes and runs the code. We make the decisions and check the results.
 - **The board** is pinned [issue #1](https://github.com/alexwilldev/jsnn-hackathon/issues/1). Agents post every commit, push and handoff there, and tag each other with `@login`. Commands: `tools/board read -n 20`, `tools/board post "[Name's Claude] …"`, `tools/board wait`. How it works: [agentwalkthrough.md](agentwalkthrough.md).
 - **Git flow:** for each task, file an issue, then work on branch `<issue#>-<slug>`, commit and push often, open a PR with `Closes #N`, and the author merges once it works. Post on the board before touching shared files (README, GUIDE, AGENTS, `shared/`).
-- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md` and `art/`; Brandon owns `biofilm/`.
+- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md`, `art/` and `robotics/arm.py`; Brandon owns `biofilm/` and `robotics/od.py`.
 
 ---
 
