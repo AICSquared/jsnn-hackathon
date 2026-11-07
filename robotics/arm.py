@@ -240,6 +240,99 @@ def respond(arm):
         move(arm, pose)
     return arm.get_angles()
 
+
+# %% [markdown]
+# ### Optional: different OD levels → different joints (opt-in with `OD_LEVELS`)
+#
+# By default the arm makes one "nod" at a single threshold (above). Setting `OD_LEVELS` instead gives each OD
+# level its own move, so a denser culture produces a different, recognisable response:
+#
+# `OD_LEVELS="0.01:J4:20,0.05:J1:25,0.2:J6:30"` means *above OD 0.01 turn joint 4 by 20°, above 0.05 turn the
+# base (J1) by 25°, above 0.2 turn the flange (J6) by 30°*. Each response goes out and back to the start pose.
+#
+# - Levels are **absolute OD values** (not relative to the baseline), so the same vial gives the same move every run.
+# - Each level fires **once per upward crossing**, with its own hysteresis: it re-arms only after OD falls below
+#   `level − margin`, where margin is 10% of the level (at least 0.0002 OD).
+# - The first reading only sets the starting state: a level the OD is already above does not fire at start-up.
+# - If OD jumps past several levels in one reading, only the **highest** level's move runs, and the lower levels
+#   are marked as fired, so they don't fire later while OD is still above them.
+# - Safety: joints J1–J6 only, at most 30° per move, relative to the start pose, at `SPEED`.
+
+# %%
+MAX_LEVEL_DEG = 30
+
+
+def parse_levels(spec):
+    """'0.01:J4:20,0.05:J1:25' -> [(0.01, 3, 20.0), (0.05, 0, 25.0)], sorted by OD. Empty or None -> []."""
+    levels = []
+    for part in (spec or "").replace(" ", "").split(","):
+        if not part:
+            continue
+        try:
+            od_s, joint_s, deg_s = part.split(":")
+            od, deg = float(od_s), float(deg_s)
+            joint = int(joint_s.upper().lstrip("J")) - 1
+        except ValueError as err:
+            raise ValueError(f"OD_LEVELS entry {part!r} must look like 0.05:J1:25") from err
+        if not 0 <= joint <= 5:
+            raise ValueError(f"OD_LEVELS entry {part!r}: joint must be J1..J6")
+        if not 0 < abs(deg) <= MAX_LEVEL_DEG:
+            raise ValueError(f"OD_LEVELS entry {part!r}: degrees must be between 0 and {MAX_LEVEL_DEG}")
+        levels.append((od, joint, deg))
+    levels.sort()
+    if len({od for od, _, _ in levels}) != len(levels):
+        raise ValueError("OD_LEVELS has two entries with the same OD")
+    return levels
+
+
+class LevelTrigger:
+    """One hysteresis switch per level. update(od) returns the index of the level to act on, or None."""
+
+    def __init__(self, levels, min_margin=0.0002):
+        self.levels = levels
+        self.margins = [max(0.1 * od, min_margin) for od, _, _ in levels]
+        self.armed = [True] * len(levels)
+        self.primed = False
+
+    def update(self, od):
+        if not self.primed:
+            # First reading: levels the OD is already above count as fired, so starting the run with a vial
+            # already in does not move the arm. They re-arm once OD falls below them.
+            self.primed = True
+            self.armed = [od <= lvl for lvl, _, _ in self.levels]
+            return None
+        fired = []
+        for i, (lvl, _, _) in enumerate(self.levels):
+            if self.armed[i] and od > lvl:
+                self.armed[i] = False
+                fired.append(i)
+            elif not self.armed[i] and od < lvl - self.margins[i]:
+                self.armed[i] = True
+        return max(fired) if fired else None
+
+
+def respond_level(arm, level):
+    _, joint, deg = level
+    move(arm, nudge(joint, deg))
+    move(arm, HOME)
+    return arm.get_angles()
+
+
+# Self-check: a gradual rise, a fall, then a single jump past every level.
+_lv = parse_levels("0.01:J4:20,0.05:J1:25,0.2:J6:30")
+assert _lv == [(0.01, 3, 20.0), (0.05, 0, 25.0), (0.2, 5, 30.0)], _lv
+_series = ([0.004] * 3 + [0.012, 0.011, 0.013]      # crosses 0.01 once, despite noise around it
+           + [0.03, 0.06, 0.055, 0.25, 0.3]          # crosses 0.05, then 0.2
+           + [0.1, 0.02, 0.004]                      # falls below every level: all re-arm
+           + [0.35, 0.36])                           # one jump past all three: only the highest moves
+_lt = LevelTrigger(_lv)
+_hits = [(i, _lv[k][1] + 1) for i, v in enumerate(_series) if (k := _lt.update(v)) is not None]
+assert _hits == [(3, 4), (7, 1), (9, 6), (14, 6)], _hits
+assert _lt.update(0.36) is None and _lt.update(0.3) is None     # stays high: no re-fire
+_start_high = LevelTrigger(_lv)                                  # run starts with a vial already in (OD 0.03)
+assert [_start_high.update(v) for v in (0.03, 0.03, 0.06)] == [None, None, 1]   # no move at start; 0.05 still fires
+print(f"level self-check passed: crossings → joints {[j for _, j in _hits]} (J4, J1, J6, then J6 only for the jump)")
+
 # %%
 def simulated_od():
     """Fallback OD: rises past the threshold, falls back, and rises again (two crossings)."""
@@ -286,19 +379,38 @@ else:
     readings = simulated_od
 print(f"OD source: {SOURCE}\nthreshold {THRESHOLD}, re-arm below {THRESHOLD - MARGIN:.4f}")
 
+LEVELS = parse_levels(os.environ.get("OD_LEVELS"))
+level_trigger = LevelTrigger(LEVELS) if LEVELS else None
+if LEVELS:
+    print("level mode (OD_LEVELS): " + ", ".join(f"OD > {od} → J{j + 1} {d:+g}°" for od, j, d in LEVELS)
+          + "  (the single threshold above is not used)")
+
 trigger = ThresholdTrigger(THRESHOLD, MARGIN)
 log = []
 RUN_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 LOG_FILE = EVIDENCE / f"trigger_log_{RUN_STAMP}.csv"     # one file per run, written after EVERY reading
 try:
     for ts, od in readings():
-        fired = trigger.update(od)
-        pose = respond(arm) if fired else None
-        log.append(dict(time=ts, od=od, threshold=THRESHOLD, event="ARM MOVED" if fired else "",
-                        pose=[round(a, 1) for a in pose] if pose else ""))
+        if level_trigger:
+            k = level_trigger.update(od)
+            fired = k is not None
+            pose = respond_level(arm, LEVELS[k]) if fired else None
+            lvl, j, d = LEVELS[k] if fired else (None, None, None)
+            event = f"ARM MOVED J{j + 1} {d:+g}° (level {lvl})" if fired else ""
+            state = " ".join(f"{od_l}:{'armed' if a else 'fired'}" for (od_l, _, _), a in zip(LEVELS, level_trigger.armed))
+            log.append(dict(time=ts, od=od, threshold=lvl if fired else "", event=event,
+                            pose=[round(a, 1) for a in pose] if pose else ""))
+        else:
+            fired = trigger.update(od)
+            pose = respond(arm) if fired else None
+            event = "ARM MOVED" if fired else ""
+            state = "armed" if trigger.armed else "waiting to re-arm"
+            log.append(dict(time=ts, od=od, threshold=THRESHOLD, event=event,
+                            pose=[round(a, 1) for a in pose] if pose else ""))
         pd.DataFrame(log).to_csv(LOG_FILE, index=False)     # saved continuously, so Ctrl+C keeps everything
         if live or fired:   # live runs print every reading so you can watch; simulated runs print only triggers
-            print(f"{ts}  OD {od:.5f}  threshold {THRESHOLD}  {'→ ARM RESPONDED' if fired else ('armed' if trigger.armed else 'waiting to re-arm')}", flush=True)
+            shown = "levels" if level_trigger else f"threshold {THRESHOLD}"
+            print(f"{ts}  OD {od:.5f}  {shown}  {('→ ' + event) if fired else state}", flush=True)
 except KeyboardInterrupt:
     print("stopped early (Ctrl+C); everything so far is saved", flush=True)
 log = pd.DataFrame(log)
@@ -306,8 +418,13 @@ print(f"trigger log: {LOG_FILE}", flush=True)
 
 fig, ax = plt.subplots(figsize=(9, 3.2))
 ax.plot(range(len(log)), log.od, "-o", ms=3, label="OD")
-ax.axhline(THRESHOLD, color="r", ls="--", label="threshold")
-ax.axhline(THRESHOLD - MARGIN, color="r", ls=":", lw=1, label="re-arm level")
+if LEVELS:
+    for od_l, j, d in LEVELS:
+        ax.axhline(od_l, color="r", ls="--", lw=1)
+        ax.text(0, od_l, f" J{j + 1} {d:+g}°", color="r", fontsize=8, va="bottom")
+else:
+    ax.axhline(THRESHOLD, color="r", ls="--", label="threshold")
+    ax.axhline(THRESHOLD - MARGIN, color="r", ls=":", lw=1, label="re-arm level")
 for i in log.index[log.event != ""]:
     ax.axvline(i, color="green", alpha=0.4); ax.text(i, ax.get_ylim()[1], " arm", color="green", fontsize=8, va="top")
 ax.set(xlabel="reading #", ylabel="OD", title=f"Arm response to OD ({SOURCE})"); ax.legend(frameon=False, fontsize=8)
