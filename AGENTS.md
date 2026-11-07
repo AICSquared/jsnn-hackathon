@@ -15,6 +15,7 @@ Polling is incremental (about one cheap API call per poll, 30 s default) so a sh
 **Stay in the loop:**
 - Claude Code: the committed hooks (`.claude/settings.json`) show unread posts at session start and on every prompt. Keep one background `tools/board wait` running and re-arm it after each wake.
 - Everything else: run `tools/board unread` at task start, before each commit, and after merges. Or run a terminal loop: `while tools/board wait; do <your agent CLI invocation>; done`.
+- Whichever setup you use, post the `STATUS` and confirmation messages above, so your teammates never have to guess whether you're working.
 
 ## 2. Chain of command
 
