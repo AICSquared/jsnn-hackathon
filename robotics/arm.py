@@ -284,15 +284,22 @@ print(f"OD source: {SOURCE}\nthreshold {THRESHOLD}, re-arm below {THRESHOLD - MA
 
 trigger = ThresholdTrigger(THRESHOLD, MARGIN)
 log = []
-for ts, od in readings():
-    fired = trigger.update(od)
-    pose = respond(arm) if fired else None
-    log.append(dict(time=ts, od=od, threshold=THRESHOLD, event="ARM MOVED" if fired else "",
-                    pose=[round(a, 1) for a in pose] if pose else ""))
-    if live or fired:   # live runs print every reading so you can watch; simulated runs print only triggers
-        print(f"{ts}  OD {od:.5f}  threshold {THRESHOLD}  {'→ ARM RESPONDED' if fired else ('armed' if trigger.armed else 'waiting to re-arm')}", flush=True)
+RUN_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_FILE = EVIDENCE / f"trigger_log_{RUN_STAMP}.csv"     # one file per run, written after EVERY reading
+try:
+    for ts, od in readings():
+        fired = trigger.update(od)
+        pose = respond(arm) if fired else None
+        log.append(dict(time=ts, od=od, threshold=THRESHOLD, event="ARM MOVED" if fired else "",
+                        pose=[round(a, 1) for a in pose] if pose else ""))
+        pd.DataFrame(log).to_csv(LOG_FILE, index=False)     # saved continuously, so Ctrl+C keeps everything
+        if live or fired:   # live runs print every reading so you can watch; simulated runs print only triggers
+            print(f"{ts}  OD {od:.5f}  threshold {THRESHOLD}  {'→ ARM RESPONDED' if fired else ('armed' if trigger.armed else 'waiting to re-arm')}", flush=True)
+except KeyboardInterrupt:
+    print("stopped early (Ctrl+C); everything so far is saved", flush=True)
 log = pd.DataFrame(log)
 log.to_csv(EVIDENCE / "trigger_log.csv", index=False)
+print(f"trigger log: {LOG_FILE}", flush=True)
 
 fig, ax = plt.subplots(figsize=(9, 3.2))
 ax.plot(range(len(log)), log.od, "-o", ms=3, label="OD")
