@@ -433,7 +433,7 @@ s_thr.add_data_point(0, thr); s_thr.add_data_point((len(od) - 1) * 5, thr)
 events = [(i * 5, float(r["od"])) for i, r in enumerate(trig) if r["event"]]
 for k, (ex, ey) in enumerate(events):          # one single-point series per response: no connecting line in any viewer
     cd.add_series(["1st arm response", "2nd arm response", "3rd arm response"][k]).add_data_point(ex, ey)
-gf = s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER, Inches(x), Inches(y), Inches(CW), Inches(6.6), cd)
+gf = s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER, Inches(x), Inches(y), Inches(CW), Inches(6.45), cd)
 gf.name = "chart_rob_od"
 ch = gf.chart
 chart_title(ch, "Live run: 2 vial insertions → exactly 2 arm responses")
@@ -450,23 +450,27 @@ for c_ in evs:
 
 style_axis(ch.category_axis, "seconds into run (one reading every 5 s)", 19, minv=0, maxv=(len(od) - 1) * 5, major=30)
 style_axis(ch.value_axis, "optical density", 19, fmt="0.00", minv=0, maxv=0.08, major=0.02)
-y += 6.8
-textbox(x, y, CW, 3.3, [
+y += 6.65
+textbox(x, y, CW, 4.6, [
     [("All 5 objectives met: ", {"bold": True, "bullet": True}), ("reactor set up, API connected, live OD streamed, arm test "
       "movement (every pose within ~1°), OD-triggered response.", {})],
-    [("Repeatable by design: ", {"bold": True, "bullet": True}), (f"threshold = baseline + 4σ ({thr}); hysteresis re-arms only after "
-      "OD falls, so one crossing → one move. A dense vial (OD 0.005 → 0.39) also fired exactly once.", {})],
+    [("Repeatable by design: ", {"bold": True, "bullet": True}), ("threshold just above the live baseline; hysteresis re-arms only "
+      "after OD falls, so each crossing → exactly one move (runs with medium and dense vials, plus a 2-min real-time video).", {})],
+    [("Failure → fix: ", {"bold": True, "bullet": True}), ("one judges' demo missed: leftover readings inflated the baseline "
+      "(threshold 0.095 vs a 0.090 peak). A median/MAD baseline capped at +0.005 now gives 0.006 on that data.", {})],
 ], size=21, name="txt_rob_results")
-y += 3.45
+y += 4.6
 
 y = header(x, y, CW, "References & Acknowledgements", "hdr_refs")
-textbox(x, y, CW, BOTTOM - y, [
+QR = 2.6
+picture(A / "qr_repo.png", x + CW - QR, y + 0.05, w=QR, h=QR, name="img_qr_repo", alt="QR code linking to github.com/alexwilldev/jsnn-hackathon")
+textbox(x, y, CW - QR - 0.2, BOTTOM - y, [
     ("Taheri-Araghi S. et al. (2015) Cell-size control and homeostasis in bacteria. Curr. Biol. 25:385–391.", {"size": 17, "bullet": True, "after": 4}),
     ("Vivarium (process-bigraph) & Viva-munk, Oliveira Lab; Pioreactor; Elephant Robotics pymycobot.", {"size": 17, "bullet": True, "after": 4}),
     ("Chou et al. (2026), Supplementary Video 1 (biofilm data).", {"size": 17, "bullet": True, "after": 4}),
     ("Thanks to the JSNN hackathon organisers and the Oliveira Lab for data, hardware and guidance. AI assistance: Claude (Anthropic).",
      {"size": 17, "after": 4}),
-    ("Code, data & evidence: github.com/alexwilldev/jsnn-hackathon", {"size": 18, "bold": True, "color": NAVY, "after": 0}),
+    ("Code, data & videos: github.com/alexwilldev/jsnn-hackathon (QR →)", {"size": 18, "bold": True, "color": NAVY, "after": 0}),
 ], size=17, name="txt_refs")
 
 prs.save(sys.argv[1])
