@@ -27,7 +27,9 @@ EVIDENCE.mkdir(parents=True, exist_ok=True)
 
 # Where the arm is. Leave as None to auto-detect; set ARM_PORT (USB, "M5" version) or ARM_IP (WiFi, "Pi" version).
 ARM_PORT = os.environ.get("ARM_PORT")          # e.g. "/dev/tty.usbserial-0001" (Mac) or "COM3" (Windows)
-ARM_IP = os.environ.get("ARM_IP")              # e.g. "192.168.1.42" (start the socket server on the arm first)
+ARM_IP = os.environ.get("ARM_IP")              # e.g. "192.168.1.42": on the arm's Pi run Server_320.py first
+# Server_320.py (official, Elephant Robotics): https://raw.githubusercontent.com/elephantrobotics/pymycobot/main/demo/Server_320.py
+# It listens on the Pi's WiFi address, port 9000. Or run this notebook ON the arm's Pi: it then uses /dev/ttyAMA0.
 SPEED = 30                                     # percent of max speed: slow and safe
 
 # %% [markdown]
@@ -72,6 +74,19 @@ def candidate_ports():
 def connect_arm():
     from pymycobot import MyCobot320, MyCobotSocket
     tries = []
+    # Running ON the arm's own Raspberry Pi (myCobot 320 Pi): the motors are on /dev/ttyAMA0 at 115200 baud.
+    if not ARM_PORT and not ARM_IP and os.path.exists("/dev/ttyAMA0"):
+        for baud in (115200, 1000000):
+            try:
+                arm = MyCobot320("/dev/ttyAMA0", baud)
+                arm.power_on()
+                time.sleep(0.5)
+                if arm.get_angles():
+                    arm.name = f"myCobot 320 Pi (on-board, /dev/ttyAMA0 @ {baud})"
+                    return arm
+                tries.append(f"/dev/ttyAMA0 @ {baud}: no answer")
+            except Exception as e:
+                tries.append(f"/dev/ttyAMA0 @ {baud}: {e}")
     for port in ([ARM_PORT] if ARM_PORT else candidate_ports()):
         try:
             arm = MyCobot320(port, 115200)
