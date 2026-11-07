@@ -5,7 +5,9 @@
 set -e
 cd "$(dirname "$0")"
 OUT="evidence/arm/live_run_$(date +%Y%m%d_%H%M%S).txt"
-cat od.py arm.py > /tmp/robotics_live.py
+RUN=".live_run.py"                       # inside robotics/ so od.py saves its log to robotics/evidence/
+cat od.py arm.py > "$RUN"
+trap 'rm -f "$RUN"' EXIT
 echo "Running live test for ${1:-10} min; output also saved to robotics/$OUT"
 MPLBACKEND=Agg OD_WATCH_MINUTES="${1:-10}" ARM_IP="${ARM_IP:-192.168.8.149}" \
-  ../digital-twin/.venv/bin/python -u /tmp/robotics_live.py 2>&1 | tee "$OUT"
+  ../digital-twin/.venv/bin/python -u "$RUN" 2>&1 | tee "$OUT"

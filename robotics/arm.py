@@ -124,8 +124,21 @@ print("Arm:", arm.name)
 # lift and lower the wrist, then return to the starting pose. Every pose is checked by reading the angles back.
 
 # %%
+def read_angles(arm, fallback=None, tries=5):
+    """The arm's 6 joint angles. Over the network it sometimes answers -1 instead of a list, so retry."""
+    for _ in range(tries):
+        try:
+            a = arm.get_angles()
+            if isinstance(a, (list, tuple)) and len(a) == 6:
+                return list(a)
+        except Exception:
+            pass
+        time.sleep(0.2)
+    return list(fallback) if fallback is not None else [float("nan")] * 6
+
+
 STEP = 20                                              # degrees per nudge: small and safe
-HOME = [round(a, 1) for a in (arm.get_angles() or [0.0] * 6)]   # where the arm is right now
+HOME = [round(a, 1) for a in read_angles(arm, fallback=[0.0] * 6)]   # where the arm is right now
 print("starting pose:", HOME)
 
 
@@ -152,12 +165,13 @@ def move(arm, angles, speed=SPEED, timeout=15.0):
     time.sleep(0.3)
     while time.time() - t0 < timeout:
         try:
-            if not arm.is_moving():
+            if arm.is_moving() == 0:          # 1 = moving, 0 = stopped, -1 = no answer (keep waiting)
                 break
         except Exception:
             pass
         time.sleep(0.2)
-    return arm.get_angles()
+    return read_angles(arm, fallback=angles)
+
 
 
 def draw_pose(ax, angles, title=""):
