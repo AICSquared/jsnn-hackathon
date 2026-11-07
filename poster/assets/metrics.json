@@ -1,6 +1,6 @@
 {
  "who": "poster",
- "collected_at": "2026-11-07T16:21:26-05:00",
+ "collected_at": "2026-11-07T16:53:33-05:00",
  "chat": {
   "session_dir_found": true,
   "sessions": [
@@ -8,35 +8,36 @@
     "file": "13da775c-7b2e-4e34-a5d8-dd731b028ec1.jsonl",
     "kind": "main",
     "start": "2026-11-07T14:53:32.526000+00:00",
-    "end": "2026-11-07T21:21:25.458000+00:00",
-    "active_minutes": 317.8,
-    "human_prompts": 77,
-    "model_responses": 440,
-    "tool_calls_total": 427,
+    "end": "2026-11-07T21:53:31.557000+00:00",
+    "active_minutes": 349.9,
+    "human_prompts": 81,
+    "model_responses": 491,
+    "tool_calls_total": 474,
     "tool_calls_by_name": {
-     "Bash": 289,
-     "mcp__ccd_turn__wrap_up": 36,
-     "Write": 28,
+     "Bash": 323,
+     "mcp__ccd_turn__wrap_up": 39,
+     "Read": 30,
+     "Write": 30,
      "Edit": 25,
-     "Read": 24,
-     "mcp__ccd_turn__update_plan": 12,
+     "mcp__ccd_turn__update_plan": 13,
      "ToolSearch": 3,
      "AskUserQuestion": 2,
      "Skill": 2,
      "WebFetch": 2,
      "mcp__45b70b2b-0aa7-4811-98a2-fe8431aeda25__create_draft": 2,
      "Agent": 1,
-     "mcp__ccd_session__start_session": 1
+     "mcp__ccd_session__start_session": 1,
+     "SendUserFile": 1
     },
     "tokens": {
-     "input_tokens": 1110,
-     "output_tokens": 335917,
-     "cache_creation_input_tokens": 630244,
-     "cache_read_input_tokens": 179722775,
-     "thinking_tokens": 78001
+     "input_tokens": 1238,
+     "output_tokens": 398137,
+     "cache_creation_input_tokens": 728603,
+     "cache_read_input_tokens": 217686184,
+     "thinking_tokens": 90105
     },
     "models": {
-     "claude-opus-5-5": 440
+     "claude-opus-5-5": 491
     }
    },
    {
@@ -86,43 +87,46 @@
    }
   ],
   "totals": {
-   "input_tokens": 1134,
-   "output_tokens": 344760,
-   "cache_creation_input_tokens": 787675,
-   "cache_read_input_tokens": 180261716,
-   "thinking_tokens": 78843,
-   "human_prompts": 79,
-   "model_responses": 448,
-   "tool_calls": 435
+   "input_tokens": 1262,
+   "output_tokens": 406980,
+   "cache_creation_input_tokens": 886034,
+   "cache_read_input_tokens": 218225125,
+   "thinking_tokens": 90947,
+   "human_prompts": 83,
+   "model_responses": 499,
+   "tool_calls": 482
   }
  },
  "git": {
-  "commits": 47,
+  "commits": 52,
   "per_author": {
    "Alex Williams": {
-    "commits": 40,
-    "code_docs_added": 2961,
-    "code_docs_removed": 218,
-    "log_data_added": 1219,
+    "commits": 44,
+    "code_docs_added": 3865,
+    "code_docs_removed": 230,
+    "log_data_added": 1651,
     "log_data_removed": 331,
     "notebook_json_added": 3585,
     "notebook_json_removed": 580
    },
    "Brandon Townsend": {
-    "commits": 7,
+    "commits": 8,
+    "code_docs_added": 722,
+    "code_docs_removed": 14,
     "log_data_added": 468,
     "log_data_removed": 0,
-    "code_docs_added": 598,
-    "code_docs_removed": 7,
     "notebook_json_added": 4774,
     "notebook_json_removed": 41
    }
   },
   "per_folder": {
    "robotics": {
-    "code_docs_added": 1000,
-    "log_data_added": 1640,
+    "code_docs_added": 1274,
+    "log_data_added": 2072,
     "notebook_json_added": 1965
+   },
+   "poster": {
+    "code_docs_added": 754
    },
    "(root)": {
     "code_docs_added": 596
@@ -153,30 +157,48 @@
    }
   },
   "first_commit": "2026-11-07T09:21:52-05:00",
-  "last_commit": "2026-11-07T16:15:46-05:00",
+  "last_commit": "2026-11-07T16:53:32-05:00",
   "note": "notebook_json lines are generated notebook files; code_docs is hand/agent-written source and docs"
  },
  "board": {
-  "posts": 94,
+  "posts": 104,
   "by_agent": {
-   "Alex's Claude": 62,
-   "Brandon's Claude": 32
+   "Alex's Claude": 68,
+   "Brandon's Claude": 36
   },
   "labels": {
-   "mentions": 67,
-   "ACK": 13,
-   "DONE": 16,
-   "STATUS": 37,
+   "mentions": 76,
+   "ACK": 15,
+   "DONE": 20,
+   "STATUS": 42,
    "BLOCKED": 1,
    "OFFLINE": 1
   },
   "first_post": "2026-11-07T14:53:41Z",
-  "last_post": "2026-11-07T21:16:10Z"
+  "last_post": "2026-11-07T21:53:32Z"
  },
  "tasks": {
-  "prs": 10,
-  "issues": 9,
+  "prs": 12,
+  "issues": 10,
   "tasks": [
+   {
+    "pr": 22,
+    "title": "Robotics: OD_LEVELS, different OD levels move different joints",
+    "author": "btowns1041",
+    "merged": false,
+    "additions": 124,
+    "deletions": 7,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 20,
+    "title": "Research poster + real-time robotics video",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 1329,
+    "deletions": 5,
+    "minutes_issue_to_merge": 8.8
+   },
    {
     "pr": 19,
     "title": "Robotics: demo video evidence",

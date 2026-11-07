@@ -7,9 +7,12 @@ Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 a
 |---|---|---|---|---|
 | 1. Digital Twin: simulate an E. coli colony | [`digital-twin/`](digital-twin/) | Alex | [`digital_twin.ipynb`](digital-twin/digital_twin.ipynb) | Predicts cell count within **4.8%** and area within **1.1%** of the real cells · **2nd place, stage 1** |
 | 2. Biofilm dispersion: track colonies breaking up | [`biofilm/`](biofilm/) | Brandon | [`biofilm_dispersion.ipynb`](biofilm/biofilm_dispersion.ipynb) | Colony 33 moved farthest (37.2 px); colony 27 had the largest breakup-score increase (+45) |
-| 3. Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | [`robotics.ipynb`](robotics/robotics.ipynb) | Objectives 1–4 done (live OD stream; arm test movement within ~1°); 5 (OD-triggered arm) awaiting the live soap test. See [`robotics/PROGRESS.md`](robotics/PROGRESS.md) |
+| 3. Robotics that Responds: live OD → robot arm | [`robotics/`](robotics/) | Brandon (reactor + OD), Alex (arm) | [`robotics.ipynb`](robotics/robotics.ipynb) | **All 5 objectives met:** live bioreactor OD drives the arm; every threshold crossing → exactly one move ([2-min video](robotics/evidence/arm/obj5_run4_realtime_2min.mp4) · [evidence](robotics/PROGRESS.md)) |
 
 **Open in Colab:** Digital Twin [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/digital-twin/digital_twin.ipynb) · Biofilm [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alexwilldev/jsnn-hackathon/blob/main/biofilm/biofilm_dispersion.ipynb)
+
+**Poster:** [`poster/JSNN_poster_Williams_Townsend.pptx`](poster/JSNN_poster_Williams_Townsend.pptx) (48 × 36 in, editable) · [preview](poster/JSNN_poster_preview.png)  
+**Robot videos:** [2-min real-time demo](robotics/evidence/arm/obj5_run4_realtime_2min.mp4) · [35-s timelapse](robotics/evidence/arm/obj4_obj5_timelapse_test_movement_and_vial_trigger.mp4)
 
 **New here? Read in this order:** this README → [GUIDE.md](GUIDE.md) (what everything means, and how to explain it to judges) → the notebooks.
 
@@ -20,9 +23,10 @@ Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 a
 2. [Run the notebooks](#2-run-the-notebooks)
 3. [How the Digital Twin works](#3-how-the-digital-twin-works)
 4. [How the Biofilm notebook works](#4-how-the-biofilm-notebook-works)
-5. [How we worked: agents, board, git](#5-how-we-worked-agents-board-git)
-6. [Learn it: a path for both of us](#6-learn-it-a-path-for-both-of-us)
-7. [Known issues](#7-known-issues)
+5. [How the Robotics challenge works](#5-how-the-robotics-challenge-works)
+6. [How we worked: agents, board, git](#6-how-we-worked-agents-board-git)
+7. [Learn it: a path for both of us](#7-learn-it-a-path-for-both-of-us)
+8. [Known issues](#8-known-issues)
 
 ---
 
@@ -51,8 +55,16 @@ jsnn-hackathon/
 │   ├── PLAN.md                 1-hour plan: objectives, API, the two-track split, risks
 │   ├── od.py                   (Track A) find the experiment, stream live OD, record/replay
 │   ├── arm.py                  (Track B) myCobot 320 control, dry-run fallback, OD threshold trigger
+│   ├── robotics.ipynb          the combined notebook (runs anywhere in dry-run + replay)
+│   ├── run_live.sh             runs the live demo from a terminal, printing every reading
 │   ├── build_notebook.py       joins od.py + arm.py → robotics.ipynb
-│   └── evidence/               photos, videos, OD log: proof of each milestone
+│   ├── PROGRESS.md             each objective, its result, and the evidence file that proves it
+│   └── evidence/               photos, videos, run logs, OD log
+│
+├── poster/                   ← research poster (CAES template, 48 × 36 in)
+│   ├── JSNN_poster_Williams_Townsend.pptx   the poster (editable, native charts)
+│   ├── JSNN_poster_preview.png              quick-look image of it
+│   └── build_poster.py + assets/            regenerates the poster from the project data
 │
 ├── tools/board               ← command-line tool for the agent message board (GitHub issue #1)
 ├── .claude/                  ← hooks that show new board posts to Claude Code agents
@@ -67,6 +79,73 @@ jsnn-hackathon/
 ```
 
 The `refs/` folder and the Python environment (`digital-twin/.venv`) only exist on the machine that made them. Git ignores them, and the notebooks don't need them because they download what they need themselves.
+
+
+### Architecture at a glance
+
+```mermaid
+flowchart TD
+
+subgraph group_twin["Digital Twin"]
+  node_twin_measure["Frame measurements<br/>[digital_twin.py]"]
+  node_twin_model["Growth rules<br/>[digital_twin.py]"]
+  node_twin_sim["Colony simulation<br/>[digital_twin.py]"]
+  node_twin_eval["Prediction evaluation<br/>[digital_twin.py]"]
+  node_twin_result["Prediction outputs<br/>[digital_twin.py]"]
+end
+
+subgraph group_biofilm["Biofilm Analysis"]
+  node_bio_masks["Colony masks<br/>[build_notebook.py]"]
+  node_bio_tracks["Movement tracking<br/>[build_notebook.py]"]
+  node_bio_breakup["Breakup analysis<br/>[build_notebook.py]"]
+  node_bio_summary["Colony results<br/>[build_notebook.py]"]
+end
+
+subgraph group_robotics["Robotics Response"]
+  node_od_stream["OD stream and replay<br/>[od.py]"]
+  node_arm_trigger["OD threshold trigger<br/>[arm.py]"]
+  node_arm_control["Arm movement<br/>[arm.py]"]
+  node_robot_result["Trigger log<br/>[arm.py]"]
+end
+
+subgraph group_external["External Systems"]
+  node_twin_data["Challenge data"]
+  node_bio_data["Uploaded biofilm data"]
+  node_od_api["Pioreactor API"]
+  node_mycobot["myCobot 320"]
+end
+
+node_user(("Challenge user"))
+
+node_user -->|"provides data"| node_twin_data
+node_twin_data -->|"loads measurements"| node_twin_measure
+node_twin_measure -->|"calibrates rules"| node_twin_model
+node_twin_model -->|"configures"| node_twin_sim
+node_twin_sim -->|"emits runs"| node_twin_eval
+node_twin_eval -->|"writes prediction"| node_twin_result
+node_user -->|"uploads files"| node_bio_data
+node_bio_data -->|"loads images and masks"| node_bio_masks
+node_bio_masks -->|"measures centroids"| node_bio_tracks
+node_bio_tracks -->|"joins movement and scores"| node_bio_breakup
+node_bio_breakup -->|"summarizes colonies"| node_bio_summary
+node_user -->|"runs notebook"| node_od_stream
+node_od_stream -->|"fetches OD"| node_od_api
+node_arm_trigger -->|"reads latest OD"| node_od_stream
+node_arm_trigger -->|"commands on crossing"| node_arm_control
+node_arm_control -->|"sends movements"| node_mycobot
+node_arm_trigger -->|"records events"| node_robot_result
+
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+class node_twin_measure,node_twin_model,node_twin_sim,node_twin_eval,node_twin_result,node_user toneBlue
+class node_bio_masks,node_bio_tracks,node_bio_breakup,node_bio_summary toneAmber
+class node_od_stream,node_arm_trigger,node_arm_control,node_robot_result toneMint
+class node_twin_data,node_bio_data,node_od_api,node_mycobot toneRose
+```
+
+*Diagram generated with [GitDiagram](https://gitdiagram.com/alexwilldev/jsnn-hackathon). Blue: Digital Twin · amber: Biofilm · green: Robotics · red: external data and hardware.*
 
 ---
 
@@ -177,16 +256,48 @@ Missing frames are NaN and never zero, and a step is never counted across a gap.
 
 ---
 
-## 5. How we worked: agents, board, git
+## 5. How the Robotics challenge works
+
+**The challenge:** connect live optical density (OD, how cloudy the culture is) from a Pioreactor bioreactor to a myCobot 320 arm, and make the arm move when OD crosses a threshold. Scored per milestone; repeatability breaks ties.
+
+```mermaid
+flowchart LR
+    R[Pioreactor<br/>IR OD reading] --> L[Leader unit API<br/>api.environnets.com]
+    L --> O[od.py<br/>newest reading]
+    O --> A[arm.py<br/>threshold + hysteresis]
+    A --> S[Server_320.py<br/>on the arm's Pi, port 9000]
+    S --> M[myCobot 320<br/>servos]
+```
+
+| Piece | What it does |
+|---|---|
+| Reactor | `oliveirapioreactor01` is the leader (stores readings, serves the API) *and* a reactor; `02` is a worker. The leader's clock is wrong (2025-10-01), so `od.py` picks the newest reading at or before the leader's own time |
+| Threshold | the median of the last minute of readings + 4 × robust noise, at least +0.0002 and at most +0.005 above the baseline |
+| Hysteresis | after firing, the trigger re-arms only once OD drops back below the threshold, so **one crossing → one move**, however noisy |
+| Arm | all moves are ±20° nudges relative to the arm's current pose, at 30% speed, read back and logged |
+
+**Run the live demo** (arm server running on the arm's Pi via `python3 ~/Server_320.py`, laptop on the same WiFi):
+```bash
+OD_POLL_SECONDS=1 robotics/run_live.sh 10     # watch 10 min, check OD every second
+```
+Wait for `armed`, then insert the vial. Output is saved to `robotics/evidence/arm/live_run_<time>.txt` and `trigger_log_<time>.csv`. Dry-run without the arm: put `ARM_IP=127.0.0.1` in front.
+
+**Results:** 5 live runs on the real arm. Every crossing gave exactly one response, including a dense vial (OD 0.005 → 0.39). One judges' demo missed: the previous vial's readings were still in the baseline minute, so the threshold (0.095) sat above the vial's peak (0.090). That's fixed with the robust median baseline. Full record: [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
+
+**Moving the arm by hand** is covered in §2. Brandon is adding an opt-in mode where higher OD levels move different joints (`OD_LEVELS`, branch `21-od-levels`).
+
+---
+
+## 6. How we worked: agents, board, git
 
 - **One challenge each, in parallel.** Each person directs their own AI agent (Claude Code), which writes and runs the code. We make the decisions and check the results.
 - **The board** is pinned [issue #1](https://github.com/alexwilldev/jsnn-hackathon/issues/1). Agents post every commit, push and handoff there, and tag each other with `@login`. Commands: `tools/board read -n 20`, `tools/board post "[Name's Claude] …"`, `tools/board wait`. How it works: [agentwalkthrough.md](agentwalkthrough.md).
 - **Git flow:** for each task, file an issue, then work on branch `<issue#>-<slug>`, commit and push often, open a PR with `Closes #N`, and the author merges once it works. Post on the board before touching shared files (README, GUIDE, AGENTS, `shared/`).
-- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md`, `art/` and `robotics/arm.py`; Brandon owns `biofilm/` and `robotics/od.py`.
+- **Ownership:** Alex owns `digital-twin/`, `GUIDE.md`, `art/`, `poster/` and `robotics/arm.py` (handed to Brandon for the OD-levels feature); Brandon owns `biofilm/` and `robotics/od.py`.
 
 ---
 
-## 6. Learn it: a path for both of us
+## 7. Learn it: a path for both of us
 
 The goal is that either of us can explain *either* notebook to a judge without the agent.
 
@@ -209,6 +320,7 @@ The goal is that either of us can explain *either* notebook to a judge without t
 | In `RULE2`, set `use_birth_estimate=False` | ? | Count lags badly: every frame-0 cell is treated as newborn |
 | In `RULE1`, double `alpha_mean_per_h` | ? | Area overshoots fast |
 | Biofilm: change `THRESHOLD` to 30 | ? | 4 colonies cross instead of 3, and earlier |
+| Robotics: run with `OD_THRESHOLD=0.1` | ? | Only a dense vial triggers the arm; a medium vial (≈0.03–0.06) doesn't |
 
 **Level 4: rederive the design.** In Claude Code, run `/rederive` (on some setups it's `/rederive:rederive`). It asks you to re-invent each design decision from the problem (for example "how do you make a closed box behave like a chamber with one open side?") instead of explaining the code. Progress is saved in `.rederive/log.md` (local only).
 
@@ -216,11 +328,14 @@ The goal is that either of us can explain *either* notebook to a judge without t
 
 ---
 
-## 7. Known issues
+## 8. Known issues
 
 - **Colab crash `cannot reify schema Array …`:** Colab ships `plum-dispatch` 2.9.0, which breaks the simulation library. The notebook now pins 2.10.1 and restarts the runtime once if needed. If you opened an older copy, reopen it from GitHub.
 - **Count lag:** the twin predicts about 8% fewer cells than real at 65 min (explained in §3). Its hidden-period count is probably an underestimate, so trust the area prediction more.
 - **Biofilm data isn't in git:** upload the 3 files in Colab (§2).
+- **Robotics: start with a quiet reactor.** Remove the previous vial and wait about a minute before starting `run_live.sh`, so the baseline isn't measured on a settling vial.
+- **Robotics: one arm connection at a time.** `Server_320.py` serves a single client: close any manual Python session before running the demo. If the arm doesn't answer, the server stopped. Restart it on the arm's Pi.
+- **Robotics: faster response** needs the reactor's `samples_per_second` raised (Configuration → `[od_reading.config]`), then Optical density stopped and restarted.
 
 ---
 
