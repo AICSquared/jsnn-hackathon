@@ -254,7 +254,8 @@ if live:
     THRESHOLD = float(os.environ.get("OD_THRESHOLD", round(level + max(4 * noise, 0.0002), 5)))
     MARGIN = float(os.environ.get("OD_MARGIN", round(max(2 * noise, 0.0001), 5)))
     print(f"live baseline: OD {level:.5f} ± {noise:.5f} over {len(vals)} readings")
-    POLLS, EVERY = 60, 5.0                     # 5 minutes of polling every 5 s
+    EVERY = 5.0                                # the reactor reports a new reading every 5 s
+    POLLS = int(float(os.environ.get("OD_WATCH_MINUTES", 5)) * 60 / EVERY)   # how long to watch (default 5 min)
     def readings():
         for _ in range(POLLS):
             r = latest_od(EXPERIMENT)
