@@ -247,6 +247,11 @@ def _draw(header, rows, readings, experiment):
     return True
 
 
+# %% [markdown]
+# **Live stream (objective 3).** 30 seconds of readings, polled every 5 s. Live when the reactor is up,
+# otherwise a replay of the recorded log. Runs in the notebook and as a script, not when imported.
+
 # %%
 if __name__ == "__main__":
-    print("latest OD:", latest_od(EXPERIMENT), "source:", SOURCE)
+    od_stream = stream_od(seconds=30, every=5)
+    print(f"{len(od_stream)} readings, series {SERIES_USED!r}, source {SOURCE!r}")
