@@ -40,13 +40,17 @@ class ApiDown(Exception):
 
 def _get(path):
     """GET API + path and parse JSON. Raises ApiDown on any network, HTTP or JSON failure."""
-    req = urllib.request.Request(API + path, headers={"Accept": "application/json",
-                                                      "User-Agent": "jsnn-hackathon-robotics"})
+    return _get_url(API + path)
+
+
+def _get_url(url):
+    req = urllib.request.Request(url, headers={"Accept": "application/json",
+                                               "User-Agent": "jsnn-hackathon-robotics"})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
             return json.loads(resp.read().decode())
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ValueError) as err:
-        raise ApiDown(f"{path}: {err}") from err
+        raise ApiDown(f"{url}: {err}") from err
 
 
 # %% [markdown]
@@ -171,6 +175,35 @@ SOURCE = None        # "live" or "replay": where the last latest_od() reading ca
 SERIES_USED = None
 
 
+def _when(iso):
+    return datetime.fromisoformat(iso.replace("Z", "+00:00"))
+
+
+def leader_now():
+    """The leader's own clock (ISO string) from /unit_api/health, or None if unavailable.
+
+    A Pioreactor without internet can boot with a wrong clock (ours read 2025-10-01), so new readings can be
+    dated *before* older ones. "Newest" therefore means the latest point at or before the leader's clock,
+    not the last point by timestamp. This stays correct whether the clock is wrong or right.
+    """
+    try:
+        body = _get_url(API.rsplit("/api", 1)[0] + "/unit_api/health")
+        return body.get("utc_time") if isinstance(body, dict) else None
+    except ApiDown:
+        return None
+
+
+def _newest(points, now_iso):
+    if not points:
+        return None
+    if now_iso:
+        now = _when(now_iso)
+        past = [p for p in points if _when(p[0]) <= now]
+        if past:
+            return max(past, key=lambda p: _when(p[0]))
+    return max(points, key=lambda p: _when(p[0]))
+
+
 def latest_od(experiment, series_label=None):
     """(ISO timestamp, OD) of the newest reading, or None if there is no live data and nothing to replay."""
     global SOURCE, SERIES_USED
@@ -182,7 +215,7 @@ def latest_od(experiment, series_label=None):
             points = series.get(label, []) if label else []
             if points:
                 SOURCE, SERIES_USED = "live", label
-                return points[-1]
+                return _newest(points, leader_now())
         except ApiDown:
             if MODE == "live":
                 raise
