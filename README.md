@@ -85,7 +85,28 @@ Both notebooks already contain their saved outputs (plots, tables, video), so yo
 2. Click the **folder icon** on the left and upload `biofilm.zip`, `colony_masks.npz` and `breakup_scores.csv` from the organisers' zip.
 3. Choose **Runtime → Run all**.
 
-**Robotics (bonus):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on the laptop connected to the myCobot. See [`robotics/PLAN.md`](robotics/PLAN.md).
+**Robotics (bonus):** the notebook runs anywhere in *dry-run* mode (no arm needed) and replays recorded OD if the live API is down. To drive the real arm, run it on a laptop on the same WiFi as the myCobot, with `ARM_IP=<arm IP>`. See [`robotics/PLAN.md`](robotics/PLAN.md) and [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
+
+#### Moving the myCobot 320 by hand
+1. On the arm's Raspberry Pi (SSH in with the arm's default login from its manual), start the control server and leave it running: `python3 ~/Server_320.py`. Wait for "waiting connect". The emergency stop must be plugged in and released.
+2. On your laptop (same WiFi), open Python and send one line at a time:
+
+```python
+from pymycobot import MyCobot320Socket
+mc = MyCobot320Socket("192.168.8.149", 9000)   # the arm's IP address, port 9000
+mc.get_angles()                                # current pose: list of 6 joint angles in degrees
+
+mc.send_angles([90, 30, 15, -30, 0, -42], 30)
+#               │   │   │    │   │   │    └─ speed: 30% of max speed (1-100)
+#               │   │   │    │   │   └────── J6 end flange: rotates the tool/gripper mount   = -42°
+#               │   │   │    │   └────────── J5 wrist turn: twists the wrist side to side    =   0°
+#               │   │   │    └────────────── J4 wrist bend: tilts the wrist up/down          = -30°
+#               │   │   └─────────────────── J3 elbow: bends the forearm                     =  15°
+#               │   └─────────────────────── J2 shoulder: leans the whole arm fwd/back       =  30°
+#               └─────────────────────────── J1 base: rotates the whole arm left/right       =  90°
+```
+
+Change one joint at a time by 10–20°, keep J2 and J3 (shoulder, elbow) moves small because they swing the whole arm, and keep a hand near the emergency stop. Type `exit()` when done: the server accepts one connection at a time, so close yours before running the notebook.
 
 **To share a notebook:** choose **File → Save a copy in Drive**, then **Share → Anyone with the link → Viewer**.
 
