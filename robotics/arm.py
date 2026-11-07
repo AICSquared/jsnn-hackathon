@@ -119,18 +119,29 @@ print("Arm:", arm.name)
 
 # %% [markdown]
 # ### Objective 4: a predefined test movement
-# Small joint moves at low speed, waiting for each move to finish before the next: home → turn the base left →
-# right → lift and lower the "wrist" → home. Every pose is checked by reading the angles back.
+# Small joint moves at low speed, waiting for each move to finish before the next. **Every move is relative to
+# the pose the arm is already in** (no big swing to an absolute "zero" pose): turn the base left → right,
+# lift and lower the wrist, then return to the starting pose. Every pose is checked by reading the angles back.
 
 # %%
-HOME = [0, 0, 0, 0, 0, 0]
+STEP = 20                                              # degrees per nudge: small and safe
+HOME = [round(a, 1) for a in (arm.get_angles() or [0.0] * 6)]   # where the arm is right now
+print("starting pose:", HOME)
+
+
+def nudge(joint, delta):
+    pose = list(HOME)
+    pose[joint] += delta
+    return pose
+
+
 TEST_MOVES = [
-    ("home", HOME),
-    ("base left", [30, 0, 0, 0, 0, 0]),
-    ("base right", [-30, 0, 0, 0, 0, 0]),
-    ("wrist up", [0, 0, 0, 30, 0, 0]),
-    ("wrist down", [0, 0, 0, -30, 0, 0]),
-    ("home", HOME),
+    ("start", HOME),
+    ("base left", nudge(0, +STEP)),
+    ("base right", nudge(0, -STEP)),
+    ("wrist up", nudge(3, +STEP)),
+    ("wrist down", nudge(3, -STEP)),
+    ("start", HOME),
 ]
 
 
@@ -207,7 +218,7 @@ fires = [i for i, v in enumerate(test_series) if trig.update(v)]
 assert len(fires) == 2, fires
 print(f"self-check passed: 2 crossings in noisy data → {len(fires)} triggers (at samples {fires})")
 
-RESPONSE = [("nod down", [0, 0, 0, -25, 0, 0]), ("nod up", [0, 0, 0, 25, 0, 0]), ("home", HOME)]
+RESPONSE = [("nod down", nudge(3, -STEP)), ("nod up", nudge(3, +STEP)), ("back to start", HOME)]
 
 
 def respond(arm):
