@@ -1,0 +1,32 @@
+EXPERIMENT = 'bioreactor_robot'  (mode auto, log has data)
+experiment: 'bioreactor_robot'   mode: auto   log: /Users/alexwilliams/Developer/hackathon/jsnn-hackathon/robotics/evidence/reactor/od_log.csv
+polled at (UTC)            reading timestamp                         OD  source
+2026-11-07T21:22:36+00:00  2025-10-01T01:53:31.153Z              0.0070  live
+2026-11-07T21:22:42+00:00  2025-10-01T01:53:56.152Z              0.0035  live
+2026-11-07T21:22:47+00:00  2025-10-01T01:54:01.152Z              0.0034  live
+2026-11-07T21:22:52+00:00  2025-10-01T01:54:06.153Z              0.0033  live
+2026-11-07T21:22:57+00:00  2025-10-01T01:54:11.157Z              0.0033  live
+2026-11-07T21:23:03+00:00  2025-10-01T01:53:51.152Z              0.0037  live
+6 readings, series 'oliveirapioreactor01-2', source 'live'
+Arm: myCobot 320 Pi at 192.168.8.149
+starting pose: [88.9, 2.0, 1.4, 1.2, -0.8, -0.3]
+         step  ...                              reached
+0       start  ...    [88.9, 2.5, 1.8, 1.3, -0.8, -0.3]
+1   base left  ...   [108.5, 2.5, 1.8, 1.3, -0.9, -0.3]
+2  base right  ...    [69.3, 2.5, 1.8, 1.3, -0.9, -0.3]
+3    wrist up  ...   [88.5, 2.5, 1.8, 21.7, -1.1, -0.3]
+4  wrist down  ...  [88.5, 2.5, 1.7, -18.4, -0.4, -0.3]
+5       start  ...    [88.5, 2.5, 1.8, 1.1, -0.9, -0.3]
+
+[6 rows x 3 columns]
+/Users/alexwilliams/Developer/hackathon/jsnn-hackathon/robotics/.live_run.py:492: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.suptitle(f"Test movement ({arm.name})", fontsize=10); plt.tight_layout(); plt.show()
+self-check passed: 2 crossings in noisy data → 2 triggers (at samples [19, 100])
+live baseline: OD 0.01236 ± 0.02018 over 12 readings
+OD source: live Pioreactor OD (experiment bioreactor_robot)
+threshold 0.09309, re-arm below 0.0527
+2025-10-01T01:54:31.153Z  OD 0.00322  threshold 0.09309  armed
+2025-10-01T01:54:31.153Z  OD 0.00322  threshold 0.09309  armed
+2025-10-01T01:54:41.152Z  OD 0.03927  threshold 0.09309  armed
+2025-10-01T01:54:41.152Z  OD 0.03927  threshold 0.09309  armed
+2025-10-01T01:54:51.152Z  OD 0.07036  threshold 0.09309  armed

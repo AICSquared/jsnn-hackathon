@@ -264,11 +264,15 @@ if live:
         vals = np.array([p[1] for p in pts]) if len(pts) >= 3 else np.array([first[1]])
     except Exception:
         vals = np.array([first[1]])
-    level, noise = float(vals.mean()), float(vals.std())
-    THRESHOLD = float(os.environ.get("OD_THRESHOLD", round(level + max(4 * noise, 0.0002), 5)))
-    MARGIN = float(os.environ.get("OD_MARGIN", round(max(2 * noise, 0.0001), 5)))
+    # Robust baseline: the median and MAD ignore a few leftover high readings (e.g. the previous vial still settling),
+    # which otherwise inflate the noise estimate and push the threshold above what a real vial reaches.
+    level = float(np.median(vals))
+    noise = float(1.4826 * np.median(np.abs(vals - level)))
+    margin_above = min(max(4 * noise, 0.0002), 0.005)       # 4 robust sd, but never less than 0.0002 or more than 0.005
+    THRESHOLD = float(os.environ.get("OD_THRESHOLD", round(level + margin_above, 5)))
+    MARGIN = float(os.environ.get("OD_MARGIN", round(min(max(2 * noise, 0.0001), 0.0025), 5)))
     print(f"live baseline: OD {level:.5f} ± {noise:.5f} over {len(vals)} readings")
-    EVERY = 5.0                                # the reactor reports a new reading every 5 s
+    EVERY = float(os.environ.get("OD_POLL_SECONDS", 5.0))   # match the reactor sampling (default: 1 reading every 5 s)
     POLLS = int(float(os.environ.get("OD_WATCH_MINUTES", 5)) * 60 / EVERY)   # how long to watch (default 5 min)
     def readings():
         for _ in range(POLLS):

@@ -1,0 +1,272 @@
+{
+ "who": "poster",
+ "collected_at": "2026-11-07T16:21:26-05:00",
+ "chat": {
+  "session_dir_found": true,
+  "sessions": [
+   {
+    "file": "13da775c-7b2e-4e34-a5d8-dd731b028ec1.jsonl",
+    "kind": "main",
+    "start": "2026-11-07T14:53:32.526000+00:00",
+    "end": "2026-11-07T21:21:25.458000+00:00",
+    "active_minutes": 317.8,
+    "human_prompts": 77,
+    "model_responses": 440,
+    "tool_calls_total": 427,
+    "tool_calls_by_name": {
+     "Bash": 289,
+     "mcp__ccd_turn__wrap_up": 36,
+     "Write": 28,
+     "Edit": 25,
+     "Read": 24,
+     "mcp__ccd_turn__update_plan": 12,
+     "ToolSearch": 3,
+     "AskUserQuestion": 2,
+     "Skill": 2,
+     "WebFetch": 2,
+     "mcp__45b70b2b-0aa7-4811-98a2-fe8431aeda25__create_draft": 2,
+     "Agent": 1,
+     "mcp__ccd_session__start_session": 1
+    },
+    "tokens": {
+     "input_tokens": 1110,
+     "output_tokens": 335917,
+     "cache_creation_input_tokens": 630244,
+     "cache_read_input_tokens": 179722775,
+     "thinking_tokens": 78001
+    },
+    "models": {
+     "claude-opus-5-5": 440
+    }
+   },
+   {
+    "file": "a789c2b0-c130-4569-95a8-36837af6012c.jsonl",
+    "kind": "main",
+    "start": "2026-11-07T18:43:50.656000+00:00",
+    "end": "2026-11-07T18:44:02.706000+00:00",
+    "active_minutes": 0.2,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 10,
+     "output_tokens": 877,
+     "cache_creation_input_tokens": 49679,
+     "cache_read_input_tokens": 0,
+     "thinking_tokens": 366
+    },
+    "models": {
+     "claude-haiku-4-5-20251001": 1
+    }
+   },
+   {
+    "file": "agent-a7472247a704b5b96.jsonl",
+    "kind": "subagent",
+    "start": "2026-11-07T16:38:44.986000+00:00",
+    "end": "2026-11-07T16:40:13.253000+00:00",
+    "active_minutes": 1.5,
+    "human_prompts": 1,
+    "model_responses": 7,
+    "tool_calls_total": 8,
+    "tool_calls_by_name": {
+     "Bash": 7,
+     "SubagentHandback": 1
+    },
+    "tokens": {
+     "input_tokens": 14,
+     "output_tokens": 7966,
+     "cache_creation_input_tokens": 107752,
+     "cache_read_input_tokens": 538941,
+     "thinking_tokens": 476
+    },
+    "models": {
+     "claude-opus-5-5": 7
+    }
+   }
+  ],
+  "totals": {
+   "input_tokens": 1134,
+   "output_tokens": 344760,
+   "cache_creation_input_tokens": 787675,
+   "cache_read_input_tokens": 180261716,
+   "thinking_tokens": 78843,
+   "human_prompts": 79,
+   "model_responses": 448,
+   "tool_calls": 435
+  }
+ },
+ "git": {
+  "commits": 47,
+  "per_author": {
+   "Alex Williams": {
+    "commits": 40,
+    "code_docs_added": 2961,
+    "code_docs_removed": 218,
+    "log_data_added": 1219,
+    "log_data_removed": 331,
+    "notebook_json_added": 3585,
+    "notebook_json_removed": 580
+   },
+   "Brandon Townsend": {
+    "commits": 7,
+    "log_data_added": 468,
+    "log_data_removed": 0,
+    "code_docs_added": 598,
+    "code_docs_removed": 7,
+    "notebook_json_added": 4774,
+    "notebook_json_removed": 41
+   }
+  },
+  "per_folder": {
+   "robotics": {
+    "code_docs_added": 1000,
+    "log_data_added": 1640,
+    "notebook_json_added": 1965
+   },
+   "(root)": {
+    "code_docs_added": 596
+   },
+   "metrics": {
+    "code_docs_added": 553
+   },
+   "biofilm": {
+    "notebook_json_added": 4774,
+    "code_docs_added": 284
+   },
+   "digital-twin": {
+    "notebook_json_added": 1620,
+    "code_docs_added": 726
+   },
+   "art": {
+    "code_docs_added": 104,
+    "log_data_added": 47
+   },
+   ".claude": {
+    "code_docs_added": 53
+   },
+   ".github": {
+    "code_docs_added": 21
+   },
+   "tools": {
+    "code_docs_added": 222
+   }
+  },
+  "first_commit": "2026-11-07T09:21:52-05:00",
+  "last_commit": "2026-11-07T16:15:46-05:00",
+  "note": "notebook_json lines are generated notebook files; code_docs is hand/agent-written source and docs"
+ },
+ "board": {
+  "posts": 94,
+  "by_agent": {
+   "Alex's Claude": 62,
+   "Brandon's Claude": 32
+  },
+  "labels": {
+   "mentions": 67,
+   "ACK": 13,
+   "DONE": 16,
+   "STATUS": 37,
+   "BLOCKED": 1,
+   "OFFLINE": 1
+  },
+  "first_post": "2026-11-07T14:53:41Z",
+  "last_post": "2026-11-07T21:16:10Z"
+ },
+ "tasks": {
+  "prs": 10,
+  "issues": 9,
+  "tasks": [
+   {
+    "pr": 19,
+    "title": "Robotics: demo video evidence",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 4,
+    "deletions": 4,
+    "minutes_issue_to_merge": 1.8
+   },
+   {
+    "pr": 18,
+    "title": "Challenge 3: Robotics that Responds (Pioreactor OD \u2192 myCobot 320)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 3891,
+    "deletions": 3,
+    "minutes_issue_to_merge": 216.9
+   },
+   {
+    "pr": 17,
+    "title": "README: robot arm wording",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 1,
+    "deletions": 1,
+    "minutes_issue_to_merge": 1.7
+   },
+   {
+    "pr": 14,
+    "title": "README: stage 1 placement",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 2,
+    "deletions": 2,
+    "minutes_issue_to_merge": 0.4
+   },
+   {
+    "pr": 13,
+    "title": "AGENTS.md: status updates and confirmations",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 18,
+    "deletions": 1,
+    "minutes_issue_to_merge": 1.5
+   },
+   {
+    "pr": 12,
+    "title": "Biofilm: colony mask overlays in the trajectory GIF",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 49,
+    "deletions": 42,
+    "minutes_issue_to_merge": 149.4
+   },
+   {
+    "pr": 9,
+    "title": "README: Colab badges + biofilm corrections",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 9,
+    "deletions": 7,
+    "minutes_issue_to_merge": 4.0
+   },
+   {
+    "pr": 7,
+    "title": "Colab fix (plum-dispatch pin) + README rewrite",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 315,
+    "deletions": 90,
+    "minutes_issue_to_merge": 7.0
+   },
+   {
+    "pr": 5,
+    "title": "Digital Twin challenge notebook, plan, guide, art",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 2408,
+    "deletions": 0,
+    "minutes_issue_to_merge": 44.1
+   },
+   {
+    "pr": 4,
+    "title": "Biofilm dispersion challenge notebook",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 5009,
+    "deletions": 0,
+    "minutes_issue_to_merge": 8.6
+   }
+  ]
+ }
+}
