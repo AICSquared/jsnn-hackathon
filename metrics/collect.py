@@ -2,6 +2,8 @@
 """Collect AI-usage metrics for the hackathon report. Standard library only; needs `git` and `gh`.
 
 Usage (from the repo root):  python3 metrics/collect.py --who alex     (Brandon: --who brandon)
+If your Claude Code session was started outside this repo, point at that session's log file(s) only:
+    python3 metrics/collect.py --who brandon --session ~/.claude/projects/-Users-you/<session-id>.jsonl
 
 Writes metrics/data/<who>.json with COUNTS AND TIMESTAMPS ONLY (no message text), from:
   1. this machine's Claude Code session logs for this repo (prompts, replies, tool calls, tokens, active time)
@@ -31,9 +33,14 @@ def active_minutes(times):
     return round(sum(min((b - a).total_seconds(), GAP_MIN * 60) for a, b in zip(times, times[1:])) / 60, 1)
 
 
-def chat_metrics():
+def chat_metrics(session_files=None):
     proj = Path.home() / ".claude" / "projects" / str(ROOT).replace("/", "-")
-    files = sorted(proj.glob("*.jsonl")) + sorted(proj.glob("*/subagents/*.jsonl"))
+    if session_files:   # explicit sessions only (plus their subagents); nothing else from that folder is read
+        files = []
+        for f in map(Path, session_files):
+            files += [f] + sorted((f.parent / f.stem / "subagents").glob("*.jsonl"))
+    else:
+        files = sorted(proj.glob("*.jsonl")) + sorted(proj.glob("*/subagents/*.jsonl"))
     out = {"session_dir_found": proj.exists(), "sessions": []}
     for f in files:
         prompts = replies = 0
@@ -149,9 +156,10 @@ def task_metrics():
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--who", required=True, help="alex or brandon")
-    who = ap.parse_args().who
+    ap.add_argument("--session", nargs="*", help="specific Claude Code session .jsonl file(s) to read instead of this repo's folder")
+    args = ap.parse_args(); who = args.who
     data = {"who": who, "collected_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-            "chat": chat_metrics(), "git": git_metrics(), "board": board_metrics(), "tasks": task_metrics()}
+            "chat": chat_metrics(args.session), "git": git_metrics(), "board": board_metrics(), "tasks": task_metrics()}
     out = ROOT / "metrics" / "data" / f"{who}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(data, indent=1))
