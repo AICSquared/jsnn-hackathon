@@ -1,7 +1,7 @@
 # JSNN Hackathon
 ## Alex Williams and Brandon Townsend
 
-Our team repo for the JSNN hackathon (Nov 7, 2026). **We placed 2nd in stage 1 and advanced to the final round.** The third challenge, Robotics that Responds, uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
+Our team repo for the JSNN hackathon (Nov 7, 2026). 🏆 **We won 1st place overall** (after placing 2nd in stage 1 and advancing to the final round). The third challenge, Robotics that Responds, uses a myCobot 320 arm and a Pioreactor provided by the organisers. Each challenge is a self-contained **Google Colab notebook** in its own folder. We built them with AI coding agents (Claude) that coordinated through a GitHub-issue message board.
 
 | Challenge | Folder | Owner | Notebook | Result |
 |---|---|---|---|---|
@@ -284,7 +284,7 @@ Wait for `armed`, then insert the vial. Output is saved to `robotics/evidence/ar
 
 **Results:** 5 live runs on the real arm. Every crossing gave exactly one response, including a dense vial (OD 0.005 → 0.39). One judges' demo missed: the previous vial's readings were still in the baseline minute, so the threshold (0.095) sat above the vial's peak (0.090). That's fixed with the robust median baseline. Full record: [`robotics/PROGRESS.md`](robotics/PROGRESS.md).
 
-**Moving the arm by hand** is covered in §2. Brandon is adding an opt-in mode where higher OD levels move different joints (`OD_LEVELS`, branch `21-od-levels`).
+**Moving the arm by hand** is covered in §2. **OD levels (opt-in):** `OD_LEVELS=preset robotics/run_live.sh 5` turns on a 5-level mode (wrist → base, 15° each, rising with OD) with a table-collision limiter based on the arm's forward kinematics. It has not been run on the real arm yet; the first run needs someone at the arm with the emergency stop in reach.
 
 ---
 

@@ -33,7 +33,7 @@ title_box = next(sh for sh in s.shapes if sh.has_text_frame and sh.text_frame.te
 paras = title_box.text_frame.paragraphs
 new = ["From Living Cells to Moving Robots: AI-Agent Teamwork Across Three Bioengineering Challenges",
        "Alex Williams and Brandon Townsend",
-       "North Carolina A&T State University  ·  JSNN Hackathon, November 7, 2026  ·  2nd place, Stage 1"]
+       "North Carolina A&T State University  ·  JSNN Hackathon, November 7, 2026  ·  1st Place Overall"]
 for p, text in zip(paras, new):
     p.runs[0].text = text
     for r in p.runs[1:]:
@@ -158,6 +158,7 @@ def legend(chart, size=18):
 dt = json.load(open(A / "dt_results.json"))
 bf = json.load(open(A / "bf_summary.json"))["summary"]
 met = json.load(open(A / "metrics.json"))
+met_b = json.load(open(A / "metrics_brandon.json"))   # Brandon's agent session (counts only)
 trig = list(csv.DictReader(open(REPO / "robotics/evidence/arm/obj5_run1_cell_medium_vial_trigger_log.csv")))
 
 TOP, BOTTOM = 5.55, 33.55
@@ -203,11 +204,12 @@ textbox(x, y, CW, 3.4, [
 y += 3.55
 
 y = header(x, y, CW, "AI by the Numbers", "hdr_ai")
-t = met["chat"]["totals"]
-active_h = sum(ss["active_minutes"] for ss in met["chat"]["sessions"]) / 60
-stats = [(f"{active_h:.1f} h", "active AI session time"), (f"{t['human_prompts']}", "human prompts (Alex)"),
-         (f"{t['tool_calls']}", "agent tool calls"), (f"{met['git']['commits']}", "commits, 2 authors"),
-         (f"{met['board']['posts']}", "agent board messages"), (f"{t['output_tokens'] / 1000:.0f}k", "output tokens")]
+ta, tb_ = met["chat"]["totals"], met_b["chat"]["totals"]
+t = {k: ta[k] + tb_[k] for k in ("human_prompts", "tool_calls", "output_tokens")}   # team totals: both agents
+active_h = sum(ss["active_minutes"] for m in (met, met_b) for ss in m["chat"]["sessions"]) / 60
+stats = [(f"{active_h:.1f} h", "AI session time, 2 agents"), (f"{t['human_prompts']}", "human prompts (team)"),
+         (f"{t['tool_calls']}", "agent tool calls (team)"), (f"{met['git']['commits']}", "commits, 2 authors"),
+         (f"{met['board']['posts']}", "agent board messages"), (f"{t['output_tokens'] / 1000:.0f}k", "output tokens (team)")]
 sw, sh_ = (CW - 0.4) / 3, 1.75
 for i, (big, small) in enumerate(stats):
     cx, cy = x + (i % 3) * (sw + 0.2), y + (i // 3) * (sh_ + 0.2)
